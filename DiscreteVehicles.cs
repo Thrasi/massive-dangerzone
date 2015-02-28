@@ -8,7 +8,8 @@ public class DiscreteVehicles : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+		DiscreteMap map = new DiscreteMap(filename);
+		
 	}
 	
 	// Update is called once per frame
@@ -16,7 +17,5 @@ public class DiscreteVehicles : MonoBehaviour {
 	
 	}
 
-	private static void readFile(string filename) {
-
-	}
+	
 }
