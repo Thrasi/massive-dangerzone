@@ -55,7 +55,7 @@ public class DiscreteVehicles : MonoBehaviour {
 	
 	// Read the map and run astar
 	void Start () {
-		DiscreteMap map = new DiscreteMap("Assets/_Data/" + filename);
+		DiscreteMap map = new DiscreteMap("Assets/_Data/ColAvoidMaze/" + filename);
 		
 		List<Vector3> obstaclePositions = map.GetObstaclePositions();
 		GenerateObstacles(obstaclePositions);
