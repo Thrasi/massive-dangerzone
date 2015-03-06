@@ -3,58 +3,64 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+/*
+	Space-time A*
+*/
 public class AStar {
 
 	// Graph to search on
-	private readonly Map map;
+	private readonly DiscreteMap map;
 
-	private Func<State, float> h;
+	// Reservation table of space time astar
+	private HashSet<State> reservationTable;
 
-	// This is the variable to save goal node, from this cost can be
-	// extracted and path traced
-	private Node goalNode;
+	// This is heuristic function
+	private Func<Vector3, Vector3, float> h;
 
 	// Cost of the path
-	public float cost { get; private set; }
+	public readonly float cost;
 
-	// Path from the start to goal
-	public List<State> path { get; private set; }
+	// Paths from the start to goal for all vehicles
+	public readonly List<State>[] paths;
 
 
 	// Constructor, also runs astar search
-	public AStar(Map map) {
+	// Runs AStar for each vehicle taking account reservation table for each
+	// next iteration. Order of running astars is important.
+	public AStar(DiscreteMap map, Func<Vector3, Vector3, float> h) {
 		this.map = map;
-		this.goalNode = null;
-		this.path = null;
-		this.cost = -1.0f;
-		Astar();
-		Trace();
+		this.h = h;
+		this.reservationTable = new HashSet<State>();
+		
+		int N = map.N;
+		this.paths = new List<State>[N];
+		Vector3[] starts = map.starts;
+		Vector3[] goals = map.goals;
+		float maxCost = float.MinValue;
+		for (int i = 0; i < N; i++) {		// Run astars, set paths and cost
+			Node goalNode = Astar(starts[i], goals[i]);
+			maxCost = Mathf.Max(maxCost, goalNode.state.t);
+			List<State> path = Trace(goalNode);
+			this.paths[i] = path;
+		}
+		this.cost = maxCost;
 	}
-	public IEnumerable<State> closed;
+
 	// Runs astar search and saves final node if exists
-	private void Astar() {
+	private Node Astar(Vector3 sPos, Vector3 gPos) {
 		// Initializing open and closed lists
 		IDictionary<State, Node> closed = new Dictionary<State, Node>();
 		List<Node> open = new List<Node>();
-		State start = map.Initial();
-		open.Add(new Node(start, 0.0f, map.h(start), null));
+		State start = new State(sPos, 0);
+		open.Add(new Node(start, 0.0f, h(sPos, gPos), null));
 
-		int i = 0;
 		while (open.Count > 0) {
-			i++;
-			if (i > 2000) {
-				Debug.Log(closed.Count + " " + open.Count);
-				this.closed = closed.Keys;
-				break;
-			}
 			// Take the best node out
 			Node curr = open[0];
 			open.RemoveAt(0);
 
-			if (map.Goal(curr.state)) {		// Found path
-				goalNode = curr;
-				cost = goalNode.g;
-				return;
+			if (curr.state.pos.Equals(gPos)) {		// Found path
+				return curr;
 			}
 
 			// Move current to closed set
@@ -63,7 +69,18 @@ public class AStar {
 			// Iterate over all adjacent nodes of current node
 			foreach (Tuple<State, float> sc in map.Successors(curr.state)) {
 				State s = sc._1;
-				Node temp = new Node(s, curr.g + sc._2, map.h(s), curr);
+
+				// This checks if there is overlap in reservation table
+				// or if vehicles go through each other
+				if (reservationTable.Contains(s)
+					||
+					(reservationTable.Contains(new State(s.pos, s.t-1))
+					&& reservationTable.Contains(new State(curr.state.pos, s.t)))) {
+					
+					continue;
+				}
+
+				Node temp = new Node(s, curr.g + sc._2, h(s.pos, gPos), curr);
 
 				// Check if the state exists in closed list
 				if (closed.ContainsKey(s)) {
@@ -94,22 +111,26 @@ public class AStar {
 				open.Insert(ins, temp);
 			}
 		}
+		return null;
 	}
 
+
 	// Traces path if it exists
-	private void Trace() {
+	private List<State> Trace(Node goalNode) {
 		if (goalNode == null) {			// Path does not exist
-			return;
+			return null;
 		}
 
 		// Trace back
-		this.path = new List<State>();
+		List<State> path = new List<State>();
 		Node temp = goalNode;
 		while (temp != null) {
 			path.Add(temp.state);
+			this.reservationTable.Add(temp.state);		// Fill the table
 			temp = temp.prev;
 		}
 		path.Reverse();
+		return path;
 	}
 
 

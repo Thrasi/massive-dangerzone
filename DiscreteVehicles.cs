@@ -6,12 +6,21 @@ using System;
 public class DiscreteVehicles : MonoBehaviour {
 
 	private static List<Color> colors = new List<Color> {
-		Color.red, Color.blue, Color.cyan, Color.gray, Color.green, Color.magenta,
+		Color.red,    Color.blue,  Color.cyan,
+		Color.gray,   Color.green, Color.magenta,
 		Color.yellow, Color.white, Color.black
 	};
 
-	private const int F = 20;
-	private int c = 0;
+	// Variables for moving vehicles
+	private const int F = 20;		// Every 20 frames
+	private int c = 0;				// Counter
+	private int step = 0;			// Step in the time
+
+	// For label
+	private float cost;
+	private GUIStyle labelStyle;
+	private Rect labelRect;
+	private string strCost;
 
 	// Object to use for vehicles
 	public GameObject vehicle;
@@ -30,46 +39,51 @@ public class DiscreteVehicles : MonoBehaviour {
 	private List<GameObject> vehicles;
 
 	// Path of the solution
-	private IEnumerable<State> path;
-	private IEnumerable<State> closed;
+	private List<State>[] paths;
 
-	// Use this for initialization
+	
+	// Read the map and run astar
 	void Start () {
 		DiscreteMap map = new DiscreteMap("Assets/_Data/" + filename);
-		/*foreach (var t in map.Successors(new State(new Vector3[] {
-			new Vector3(1, 0, 1), new Vector3(4, 0, 2)
-		}))) {
-			print("point " + t);
-		}*/
+		
 		List<Vector3> obstaclePositions = map.GetObstaclePositions();
 		GenerateObstacles(obstaclePositions);
 		List<Vector3> vehiclePositions = map.GetStartPositions();
 		GenerateVehicles(vehiclePositions);
-		AStar ast = new AStar(map);
-		path = ast.path;
-		closed = ast.closed;
-/*		foreach (State s in path) {
-			print(s);
-		}
-			
-		*/
+		
+		AStar ast = new AStar(
+			map,
+			delegate(Vector3 a, Vector3 b) {
+				return (a-b).magnitude;
+			}
+		);
+		paths = ast.paths;
+		cost = ast.cost;
+
+		// Initialize label printing
+		labelStyle = new GUIStyle();
+		labelStyle.normal.textColor = Color.black;
+		labelRect = new Rect(20, 20, 20, 20);
+		strCost = "Time: " + cost.ToString("0.00");
 	}
 	
-	// Update is called once per frame
+	// Move all vehicles one step
 	void Update () {
-		return;
 		c++;
 		if (c >= F) {
 			c = 0;
-			if (path.Count() == 0) {
-				return;
+			for (int i = 0; i < paths.Length; i++) {
+				if (step < paths[i].Count) {
+					vehicles[i].transform.position = paths[i][step].pos;
+				}
 			}
-			Vector3[] positions = path.First().positions;
-			path = path.Skip(1);
-			for (int i = 0; i < positions.Length; i++) {
-				vehicles[i].transform.position = positions[i];
-			}
+			step++;
 		}
+	}
+
+	// Show the label on screen
+	void OnGUI() {
+		GUI.Label(labelRect, strCost, labelStyle);
 	}
 
 	// Generates obstacles in map
@@ -100,14 +114,17 @@ public class DiscreteVehicles : MonoBehaviour {
 		}
 	}
 
+	// Draws paths
 	void OnDrawGizmos() {
-		if (closed != null) {
-			Gizmos.color = Color.red;
-			foreach (State s in closed) {
-				foreach (Vector3 v in s.positions) {
-
-					Gizmos.DrawSphere(v, 0.5f);
+		if (paths != null) {
+			for (int i = 0; i < paths.Length; i++) {
+				Gizmos.color = vehicles[i].renderer.material.color;
+				int len = paths[i].Count;
+				for (int j = 0; j < len-1; j++) {
+					Gizmos.DrawSphere(paths[i][j].pos, 0.05f);
+					Gizmos.DrawLine(paths[i][j].pos, paths[i][j+1].pos);
 				}
+				Gizmos.DrawSphere(paths[i][paths[i].Count-1].pos, 0.3f);
 			}
 		}
 	}

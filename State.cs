@@ -8,33 +8,34 @@ using System.Linq;
 public class State {
 
 	// Positions of all vehicles
-	public Vector3[] positions { get; private set; }
+	public Vector3 pos { get; private set; }
 
-	// Copy of the enumerable
-	public State(IEnumerable<Vector3> positions) {
-		this.positions = new List<Vector3>(positions).ToArray();
+	// Time instance
+	public int t { get; private set; }
+
+
+	// Set time and position
+	public State(Vector3 pos, int t) {
+		this.pos = pos;
+		this.t = t;
 	}
 
-	// If all positions are equal
+	// Both position and time are equal
 	public override bool Equals(object other) {
 		if (!(other is State)) {
 			return false;
 		}
 		State obj = other as State;
-		return Enumerable.SequenceEqual(this.positions, obj.positions);
+		return this.pos.Equals(obj.pos) && this.t == obj.t;
 	}
 
 	// For dictionary
 	public override int GetHashCode() {
-		int s = 0;
-		foreach (Vector3 v in positions) {
-			s += 17 * (v.x.GetHashCode() + 31 * v.z.GetHashCode());
-		}
-		return s;
+		return pos.GetHashCode() + 31 * t;
 	}
 
 	// For debugging
 	public override string ToString() {
-		return string.Join(" ", positions.Select(x => x.ToString()).ToArray());
+		return string.Format("({0}, {1})", pos, t);
 	}
 }

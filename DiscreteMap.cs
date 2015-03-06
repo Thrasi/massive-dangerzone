@@ -7,17 +7,17 @@ using System.IO;
 	Class for modelling discrete maps. Has a map of obstacles and
 	start end points for all vehicles.
 */
-public class DiscreteMap : Map {
+public class DiscreteMap {
 
 	// Number of vehicles
-	private readonly int N;
+	public readonly int N;
 
 	// Size of the map, (y, x) == (rows, columns)
-	private readonly Tuple<int, int> size;
+	public readonly Tuple<int, int> size;
 
 	// Start and goal coordinates for all vehicles
-	private readonly Vector3[] starts;
-	private readonly Vector3[] goals;
+	public readonly Vector3[] starts;
+	public readonly Vector3[] goals;
 
 	// Map of obstacles, true means free, false means obstacle
 	private readonly bool[,] map;
@@ -26,10 +26,45 @@ public class DiscreteMap : Map {
 	private readonly Vector3[] neighborhood;
 
 
-	// Constructor that reads the map from file
+	/* 	Reads the file for discrete map, the file should have this format:
+		first line -> N -> number of vehicles
+		next N lines -> Xs Ys Xe Ye -> start and end coordinates i-th of vehicle
+		R C -> number of rows and columns in a map (size of the map)
+		next R lines with C times 1/0
+	*/
 	public DiscreteMap(string filename) {
-		CreateMap(filename, out N, out size, out starts, out goals, out map);
-		neighborhood = n4;
+		this.neighborhood = n4;		// Always use 4-connected		
+		
+		StreamReader sr = new StreamReader(filename);
+		try {
+			// Number of vehicles
+			string sN = sr.ReadLine();
+			this.N = int.Parse(sN);
+			this.starts = new Vector3[N];
+			this.goals = new Vector3[N];
+
+			// Read coordinates for all vehicles
+			for (int i = 0; i < N; i++) {
+				string[] coords = sr.ReadLine().Split(' ');
+				starts[i] = new Vector3(int.Parse(coords[0]), 0, int.Parse(coords[1]));
+				goals[i] = new Vector3(int.Parse(coords[2]), 0, int.Parse(coords[3]));
+			}
+
+			// Size of the map
+			string[] sSize = sr.ReadLine().Split(' ');
+			this.size = Tuple.Create(int.Parse(sSize[0]), int.Parse(sSize[1]));
+			this.map = new bool[size._1, size._2];	// x and y are here inverted
+			
+			// Read the map
+			for (int y = 0; y < size._1; y++) {
+				string[] line = sr.ReadLine().Split(' ');
+				for (int x = 0; x < size._2; x++) {
+					map[y,x] = int.Parse(line[x]) == 0;
+				}
+			}
+		} finally {
+			sr.Close();
+		}
 	}
 
 	// Returns a list of positions for obstacles
@@ -53,102 +88,26 @@ public class DiscreteMap : Map {
 	// Returns enumerable of successors and costs to state s
 	public IEnumerable<Tuple<State, float>> Successors(State s) {
 		List<Tuple<State, float>> succ = new List<Tuple<State, float>>();
-		Successors(s.positions, new List<Vector3>(), succ);
-		return succ;
-	}
-
-	private void Successors(IEnumerable<Vector3> positions, List<Vector3> currExpand,
-		List<Tuple<State, float>> acc) {
-		
-		if (positions.Count() == 0) {
-			acc.Add(Tuple.Create(new State(currExpand), 1.0f));
-			return;
-		}
-
-		Vector3 curr = positions.First();
 		foreach (Vector3 move in neighborhood) {
-			Vector3 neighbor = curr + move;
+			Vector3 neighbor = s.pos + move;
 			int z = (int) neighbor.z, x = (int) neighbor.x;
-			//Debug.Log(z + " " + x);
 			if (z < 0 || x < 0 || z >= size._1 || x >= size._2 || !map[z,x]) {
 				continue;
 			}
-			List<Vector3> newExpand = new List<Vector3>(currExpand);
-			newExpand.Add(neighbor);
-			Successors(positions.Skip(1), newExpand, acc);
-		}
-	}
 
-	// Returns true if state s is goal state
-	public bool Goal(State s) {
-		State goal = new State(goals);
-		return goal.Equals(s);
-	}
-
-	// Returns initial state of the map
-	public State Initial() {
-		return new State(starts);
-	}
-
-	// Heuristic value from state s to goal state
-	public float h(State s) {
-		Vector3[] curr = s.positions;
-		float maxDist = float.MinValue;
-		for (int i = 0; i < curr.Length; i++) {
-			float dx = curr[i].x - goals[i].x;
-			float dy = curr[i].z - goals[i].z;
-			float dist = Mathf.Sqrt(dx * dx + dy * dy);
-			if (dist > maxDist) {
-				maxDist = dist;
+			// Make the pause cost less, change it if it starts to fuck up
+			float cost = 1.0f;
+			if (move.Equals(Vector3.zero)) {
+				cost = 0.5f;
 			}
+			succ.Add(Tuple.Create(new State(neighbor, s.t + 1), cost));
 		}
-		return maxDist;
-	}
-
-
-	/* 	Reads the file for discrete map, the file should have this format:
-		first line -> N -> number of vehicles
-		next N lines -> Xs Ys Xe Ye -> start and end coordinates i-th of vehicle
-		R C -> number of rows and columns in a map (size of the map)
-		next R lines with C times 1/0
-	*/
-	private static void CreateMap(string filename, out int N, out Tuple<int, int> size,
-		out Vector3[] starts, out Vector3[] goals, out bool[,] map) {
-		
-		StreamReader sr = new StreamReader(filename);
-		try {
-			// Number of vehicles
-			string sN = sr.ReadLine();
-			N = int.Parse(sN);
-			starts = new Vector3[N];
-			goals = new Vector3[N];
-
-			// Read coordinates for all vehicles
-			for (int i = 0; i < N; i++) {
-				string[] coords = sr.ReadLine().Split(' ');
-				starts[i] = new Vector3(int.Parse(coords[0]), 0, int.Parse(coords[1]));
-				goals[i] = new Vector3(int.Parse(coords[2]), 0, int.Parse(coords[3]));
-			}
-
-			// Size of the map
-			string[] sSize = sr.ReadLine().Split(' ');
-			size = Tuple.Create(int.Parse(sSize[0]), int.Parse(sSize[1]));
-			map = new bool[size._1, size._2];	// x and y are here inverted
-			
-			// Read the map
-			for (int y = 0; y < size._1; y++) {
-				string[] line = sr.ReadLine().Split(' ');
-				for (int x = 0; x < size._2; x++) {
-					map[y,x] = int.Parse(line[x]) == 0;
-				}
-			}
-		} finally {
-			sr.Close();
-		}
-	}
+		return succ;
+	} 
 
 
 	// Here are all neighborhoods
+	// Only n4 is used at the moment
 
 	private static readonly Vector3[] n4 = new Vector3[] {
 		Vector3.zero,
@@ -157,6 +116,9 @@ public class DiscreteMap : Map {
 		new Vector3(-1, 0,  0),
 		new Vector3( 0, 0, -1)
 	};
+
+	// To suppress variable not used
+	#pragma warning disable 0414
 
 	private static readonly Vector3[] n8 = new Vector3[] {
 		Vector3.zero,
@@ -181,4 +143,6 @@ public class DiscreteMap : Map {
 		new Vector3(-1, 0, -1), new Vector3(-1, 0,  2),
 		new Vector3( 1, 0, -1), new Vector3(-1, 0, -2)
 	};	
+
+	#pragma warning restore 0414
 }
