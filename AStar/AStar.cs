@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System;
 
 /*
@@ -23,11 +24,15 @@ public class AStar {
 	// Paths from the start to goal for all vehicles
 	public readonly List<State>[] paths;
 
+	// Depth to search
+	private int depth;
+
 
 	// Constructor, also runs astar search
 	// Runs AStar for each vehicle taking account reservation table for each
 	// next iteration. Order of running astars is important.
-	public AStar(DiscreteMap map, Func<Vector3, Vector3, float> h) {
+	public AStar(DiscreteMap map, int depth, Func<Vector3, Vector3, float> h) {
+		this.depth = depth;
 		this.map = map;
 		this.h = h;
 		this.reservationTable = new HashSet<State>();
@@ -36,14 +41,27 @@ public class AStar {
 		this.paths = new List<State>[N];
 		Vector3[] starts = map.starts;
 		Vector3[] goals = map.goals;
-		float maxCost = float.MinValue;
-		for (int i = 0; i < N; i++) {		// Run astars, set paths and cost
+		List<int>[] pauses = new List<int>[N];		// For cost only
+		for (int i = 0; i < N; i++) {			// Run astars, set paths
 			Node goalNode = Astar(starts[i], goals[i]);
-			maxCost = Mathf.Max(maxCost, goalNode.state.t);
 			List<State> path = Trace(goalNode);
 			this.paths[i] = path;
+
+			// Check all pauses
+			pauses[i] = new List<int>();
+			for (int j = 0; j < depth-1; j++) {
+				if (path[j].pos.Equals(path[j+1].pos)) {
+					pauses[i].Add(j);
+				}
+			}
 		}
-		this.cost = maxCost;
+
+		// Compute cost
+		HashSet<int> inters = new HashSet<int>(pauses[0]);
+		for (int i = 1; i < N; i++) {
+			inters.IntersectWith(pauses[i]);
+		}
+		this.cost = Enumerable.Min(inters);
 	}
 
 	// Runs astar search and saves final node if exists
@@ -59,7 +77,7 @@ public class AStar {
 			Node curr = open[0];
 			open.RemoveAt(0);
 
-			if (curr.state.pos.Equals(gPos)) {		// Found path
+			if (curr.state.t >= depth) {		// Depth reached, finish search
 				return curr;
 			}
 
@@ -69,6 +87,11 @@ public class AStar {
 			// Iterate over all adjacent nodes of current node
 			foreach (Tuple<State, float> sc in map.Successors(curr.state)) {
 				State s = sc._1;
+				float sCost = sc._2;
+				// Pause command costs 0 if it is at goal
+				if (curr.state.pos.Equals(gPos) && s.pos.Equals(gPos)) {
+					sCost = 0.0f;
+				}
 
 				// This checks if there is overlap in reservation table
 				// or if vehicles go through each other
@@ -80,7 +103,7 @@ public class AStar {
 					continue;
 				}
 
-				Node temp = new Node(s, curr.g + sc._2, h(s.pos, gPos), curr);
+				Node temp = new Node(s, curr.g + sCost, h(s.pos, gPos), curr);
 
 				// Check if the state exists in closed list
 				if (closed.ContainsKey(s)) {

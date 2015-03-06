@@ -96,10 +96,7 @@ public class DiscreteMap {
 			}
 
 			// Make the pause cost less, change it if it starts to fuck up
-			float cost = 1.0f;
-			if (move.Equals(Vector3.zero)) {
-				cost = 0.5f;
-			}
+			float cost = move.Equals(Vector3.zero) ? 0.5f : 1.0f;
 			succ.Add(Tuple.Create(new State(neighbor, s.t + 1), cost));
 		}
 		return succ;

@@ -5,10 +5,17 @@ using System;
 
 public class DiscreteVehicles : MonoBehaviour {
 
+	// Some colors for different vehicles
 	private static List<Color> colors = new List<Color> {
 		Color.red,    Color.blue,  Color.cyan,
 		Color.gray,   Color.green, Color.magenta,
-		Color.yellow, Color.white, Color.black
+		Color.yellow, Color.white, Color.black,
+		new Color(0.5f, 0.7f, 1.0f),
+		new Color(0.7f, 0.5f, 1.0f),
+		new Color(1.0f, 0.5f, 0.7f),
+		new Color(1.0f, 0.7f, 0.5f),
+		new Color(0.5f, 1.0f, 0.7f),
+		new Color(0.7f, 1.0f, 0.5f)
 	};
 
 	// Variables for moving vehicles
@@ -18,6 +25,7 @@ public class DiscreteVehicles : MonoBehaviour {
 
 	// For label
 	private float cost;
+	private float startup;
 	private GUIStyle labelStyle;
 	private Rect labelRect;
 	private string strCost;
@@ -30,6 +38,9 @@ public class DiscreteVehicles : MonoBehaviour {
 
 	// Name of the file which contains a map
 	public string filename;
+
+	// Depth to explore
+	public int depth;
 
 	// List of obstacle gameobjects and the parent
 	private GameObject obstacleParent;
@@ -50,21 +61,24 @@ public class DiscreteVehicles : MonoBehaviour {
 		GenerateObstacles(obstaclePositions);
 		List<Vector3> vehiclePositions = map.GetStartPositions();
 		GenerateVehicles(vehiclePositions);
-		
+
 		AStar ast = new AStar(
 			map,
-			delegate(Vector3 a, Vector3 b) {
+			depth,
+			delegate(Vector3 a, Vector3 b) {		// Heuristic function
 				return (a-b).magnitude;
 			}
 		);
 		paths = ast.paths;
 		cost = ast.cost;
+		startup = Time.realtimeSinceStartup;
 
 		// Initialize label printing
 		labelStyle = new GUIStyle();
 		labelStyle.normal.textColor = Color.black;
 		labelRect = new Rect(20, 20, 20, 20);
-		strCost = "Time: " + cost.ToString("0.00");
+		strCost = "Time: " + cost.ToString("0.00")
+			+ "\nStartup: " + startup.ToString("0.00");
 	}
 	
 	// Move all vehicles one step
@@ -72,7 +86,8 @@ public class DiscreteVehicles : MonoBehaviour {
 		c++;
 		if (c >= F) {
 			c = 0;
-			for (int i = 0; i < paths.Length; i++) {
+			int len = paths.Length;
+			for (int i = 0; i < len; i++) {
 				if (step < paths[i].Count) {
 					vehicles[i].transform.position = paths[i][step].pos;
 				}
@@ -115,16 +130,18 @@ public class DiscreteVehicles : MonoBehaviour {
 	}
 
 	// Draws paths
+	// Watch out, this function can be very slow for some reason
+	// If depth is big then turn off sphere drawing
 	void OnDrawGizmos() {
 		if (paths != null) {
 			for (int i = 0; i < paths.Length; i++) {
 				Gizmos.color = vehicles[i].renderer.material.color;
-				int len = paths[i].Count;
-				for (int j = 0; j < len-1; j++) {
-					Gizmos.DrawSphere(paths[i][j].pos, 0.05f);
-					Gizmos.DrawLine(paths[i][j].pos, paths[i][j+1].pos);
+				List<State> currPath = paths[i];
+				for (int j = 0; j < cost; j++) {
+					//Gizmos.DrawSphere(currPath[j].pos, 0.1f);
+					Gizmos.DrawLine(currPath[j].pos, currPath[j+1].pos);
 				}
-				Gizmos.DrawSphere(paths[i][paths[i].Count-1].pos, 0.3f);
+				Gizmos.DrawSphere(currPath[(int) cost].pos, 0.3f);
 			}
 		}
 	}
