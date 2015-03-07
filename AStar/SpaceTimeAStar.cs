@@ -7,7 +7,7 @@ using System;
 /*
 	Space-time A*
 */
-public class AStar {
+public class SpaceTimeAStar {
 
 	// Graph to search on
 	private readonly DiscreteMap map;
@@ -31,7 +31,7 @@ public class AStar {
 	// Constructor, also runs astar search
 	// Runs AStar for each vehicle taking account reservation table for each
 	// next iteration. Order of running astars is important.
-	public AStar(DiscreteMap map, int depth, Func<Vector3, Vector3, float> h) {
+	public SpaceTimeAStar(DiscreteMap map, int depth, Func<Vector3, Vector3, float> h) {
 		this.depth = depth;
 		this.map = map;
 		this.h = h;
@@ -185,7 +185,7 @@ public class AStar {
 		}
 
 		// Overriding Equals so that nodes are equal if they hold the same state
-		public override bool Equals(System.Object other) {
+		public override bool Equals(object other) {
 			if (!(other is Node)) {
 				return false;
 			}

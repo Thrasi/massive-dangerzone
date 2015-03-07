@@ -62,7 +62,7 @@ public class DiscreteVehicles : MonoBehaviour {
 		List<Vector3> vehiclePositions = map.GetStartPositions();
 		GenerateVehicles(vehiclePositions);
 
-		AStar ast = new AStar(
+		SpaceTimeAStar ast = new SpaceTimeAStar(
 			map,
 			depth,
 			delegate(Vector3 a, Vector3 b) {		// Heuristic function
