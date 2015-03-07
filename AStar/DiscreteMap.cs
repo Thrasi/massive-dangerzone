@@ -100,7 +100,11 @@ public class DiscreteMap {
 			succ.Add(Tuple.Create(new State(neighbor, s.t + 1), cost));
 		}
 		return succ;
-	} 
+	}
+
+	public DiscreteGraph GetGraph() {
+		return new DiscreteGraph(map, size);
+	}
 
 
 	// Here are all neighborhoods
