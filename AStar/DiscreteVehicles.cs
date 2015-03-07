@@ -62,17 +62,11 @@ public class DiscreteVehicles : MonoBehaviour {
 		List<Vector3> vehiclePositions = map.GetStartPositions();
 		GenerateVehicles(vehiclePositions);
 
-		DiscreteGraph gph = map.GetGraph();
-		IDictionary<Vector3, GridDistance> hs = new Dictionary<Vector3, GridDistance>();
-		for (int i = 0; i < map.N; i++) {
-			hs[map.starts[i]] = new GridDistance(gph, map.starts[i]);
-		}
-
 		SpaceTimeAStar ast = new SpaceTimeAStar(
 			map,
 			depth,
-			delegate(Vector3 a, Vector3 goal) {		// Heuristic function
-				return hs[goal].dist[(int) a.z, (int) a.x];
+			delegate(Vector3 a, Vector3 b) {		// Heuristic function
+				return (a-b).magnitude;
 			}
 		);
 		paths = ast.paths;

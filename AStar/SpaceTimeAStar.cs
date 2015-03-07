@@ -42,19 +42,9 @@ public class SpaceTimeAStar {
 		Vector3[] starts = map.starts;
 		Vector3[] goals = map.goals;
 		List<int>[] pauses = new List<int>[N];		// For cost only
-		Node[] nodes = new Node[N];
-		for (int i = 0; i < N; i++) {
-			nodes[i] = new Node(new State(starts[i], 0), 0.0f, h(starts[i], goals[i]), null);
-		}
-		for (int st = 0; st < 10; st++) {
-			this.depth = 10*(st+1);
-			for (int i = 0; i < N; i++) {			// Run astars, set paths
-				nodes[i] = Astar(nodes[i], goals[i]);
-			}
-		}
-
-		for (int i = 0; i < N; i++) {
-			List<State> path = Trace(nodes[i]);
+		for (int i = 0; i < N; i++) {			// Run astars, set paths
+			Node goalNode = Astar(starts[i], goals[i]);
+			List<State> path = Trace(goalNode);
 			this.paths[i] = path;
 
 			// Check all pauses
@@ -75,8 +65,7 @@ public class SpaceTimeAStar {
 	}
 
 	// Runs astar search and saves final node if exists
-	private Node Astar(Node sNode, Vector3 gPos) {
-		Vector3 sPos = sNode.state.pos;
+	private Node Astar(Vector3 sPos, Vector3 gPos) {
 		// Initializing open and closed lists
 		IDictionary<State, Node> closed = new Dictionary<State, Node>();
 		List<Node> open = new List<Node>();
