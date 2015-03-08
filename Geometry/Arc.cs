@@ -14,7 +14,7 @@ public class Arc {
 	private static float eps = 0.0001f;
 
 	// Arc center
-	private Vector2 center;
+	private Vector3 center;
 
 	// Radius
 	private float r;
@@ -27,7 +27,7 @@ public class Arc {
 	// Converts both angles so they are inside [0, 360] interval
 	// It means that if the parameters are sAngle = 90, eAngle = 540,
 	// the actual arc will be between 90 and 180, and not full circle
-	public Arc(Vector2 center, float r, float sAngle, float eAngle) {
+	public Arc(Vector3 center, float r, float sAngle, float eAngle) {
 		this.center = center;
 		this.r = r;
 		this.sAngle = sAngle - Mathf.Floor(sAngle / 360.0f) * 360.0f;
@@ -51,8 +51,8 @@ public class Arc {
 				return false;
 			}
 			float ysqrt = Mathf.Sqrt(ydet);
-			y1 = ysqrt + center.y;
-			y2 = -ysqrt + center.y;
+			y1 = ysqrt + center.z;
+			y2 = -ysqrt + center.z;
 		} else {				// Line not vertical
 			// Number crunching
 			// It looks ugly as hell but it needs to have as few operations
@@ -70,8 +70,8 @@ public class Arc {
 			float g = - l.a / l.b;
 			float c = - l.c / l.b;
 			float a = g*g + 1;
-			float b = 2 * ( g*(c - center.y) - center.x );
-			c = (center.y - c)*(center.y - c) - r*r + center.x*center.x;
+			float b = 2 * ( g*(c - center.z) - center.x );
+			c = (center.z - c)*(center.z - c) - r*r + center.x*center.x;
 
 			// Discriminant of quadratic equation
 			float d = b * b - 4 * a * c;
@@ -92,15 +92,15 @@ public class Arc {
 		}
 
 		// Easier check if the point is on arc and edge
-		Vector2 p1 = new Vector2(x1-center.x, y1-center.y);
-		Vector2 p2 = new Vector2(x2-center.x, y2-center.y);
-		float a1 = Angle(Vector2.right, p1);
-		float a2 = Angle(Vector2.right, p2);
+		Vector3 p1 = new Vector3(x1-center.x, 0, y1-center.z);
+		Vector3 p2 = new Vector3(x2-center.x, 0, y2-center.z);
+		float a1 = Angle(Vector3.right, p1);
+		float a2 = Angle(Vector3.right, p2);
 
 		float xs = Mathf.Min(e.v.x, e.w.x);
 		float xb = Mathf.Max(e.v.x, e.w.x);
-		float ys = Mathf.Min(e.v.y, e.w.y);
-		float yb = Mathf.Max(e.v.y, e.w.y);
+		float ys = Mathf.Min(e.v.z, e.w.z);
+		float yb = Mathf.Max(e.v.z, e.w.z);
 
 		bool sLessE = sAngle < eAngle;
 
@@ -118,12 +118,12 @@ public class Arc {
 	}
 
 	// Return angle between two vectors in 0-360 interval going counter-lockwise
-	public static float Angle(Vector2 a, Vector2 b) {
-		float sign = Mathf.Sign(Vector3.Cross(a, b).z);
+	public static float Angle(Vector3 a, Vector3 b) {
+		float sign = Mathf.Sign(Vector3.Cross(a, b).y);
 		if (sign < 0) {
-			return 360 - Vector2.Angle(a, b);
+			return 360 - Vector3.Angle(a, b);
 		}
-		return Vector2.Angle(a, b);
+		return Vector3.Angle(a, b);
 	}
 
 }

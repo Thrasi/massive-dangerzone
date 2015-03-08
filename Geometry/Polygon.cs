@@ -6,7 +6,7 @@ using System;
 public class Polygon {
 
 	// Vertices list
-	private List<Vector2> vertices;
+	private List<Vector3> vertices;
 
 	// Edge collection, not really needed but sacrificing some memory
 	// for better time complexity
@@ -14,9 +14,9 @@ public class Polygon {
 
 
 	// Constructor creates a list of edges and vertices
-	public Polygon(IEnumerable<Vector2> vs) {
-		vertices = new List<Vector2>();
-		foreach (Vector2 v in vs) {
+	public Polygon(IEnumerable<Vector3> vs) {
+		vertices = new List<Vector3>();
+		foreach (Vector3 v in vs) {
 			vertices.Add(v);
 		}
 		
@@ -34,7 +34,7 @@ public class Polygon {
 	}
 
 	// Checks if the polygon contains the vertex
-	public bool ContainsVertex(Vector2 v) {
+	public bool ContainsVertex(Vector3 v) {
 		return vertices.Contains(v);
 	}
 
@@ -60,9 +60,9 @@ public class Polygon {
 
 	// Check if point is inside polygon
 	// Using RayCaster algorithm
-	public bool IsInside(Vector2 p) {
+	public bool IsInside(Vector3 p) {
 		int count = 0;
-		Edge ray = new Edge(p, new Vector2(float.MaxValue, p.y));
+		Edge ray = new Edge(p, new Vector3(float.MaxValue, 0, p.z));
 		foreach (Edge e in edges) {
 			if (ray.Intersect(e)) {
 				count++;
@@ -83,7 +83,7 @@ public class Polygon {
 		// Create Vector2 vertices
 		Vector2[] vertices2D = new Vector2[this.vertices.Count];
         for (int i = 0; i < this.vertices.Count; i++) {
-        	vertices2D[i] = new Vector2(this.vertices[i].x, this.vertices[i].y);
+        	vertices2D[i] = new Vector2(this.vertices[i].x, this.vertices[i].z);
         }
  
         // Use the triangulator to get indices for creating triangles

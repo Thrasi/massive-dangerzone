@@ -41,9 +41,9 @@ public class PolygonMap : AbstractPolygonMap {
 
 			// Initialize polygon collection
 			this.polys = new List<Polygon>();
-			List<Vector2> buffer = new List<Vector2>();
+			List<Vector3> buffer = new List<Vector3>();
 			for (int i = 0; i < count; i++) {
-				buffer.Add(new Vector2(vertices[i].x, vertices[i].z));
+				buffer.Add(vertices[i]);
 				if (button[i] == 3) {
 					Polygon newPol = new Polygon(buffer);
 					polys.Add(newPol);

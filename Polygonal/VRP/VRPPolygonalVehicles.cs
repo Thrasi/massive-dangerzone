@@ -8,9 +8,12 @@ public class VRPPolygonalVehicles : AbstractVehicles {
 	private List<GameObject> customers;
 	private GameObject customer;
 
+	// Name of the file for the map
 	public string filename;
 
+	// Material for obstacles
 	private Material material;
+
 
 	// Use this for initialization
 	void Start () {
@@ -39,7 +42,7 @@ public class VRPPolygonalVehicles : AbstractVehicles {
 	}
 
 	// Generate customers
-	protected void GenerateCustomers(List<Vector3> positions) {
+	private void GenerateCustomers(List<Vector3> positions) {
 		customerParent = new GameObject();
 		customerParent.name = "Customers";
 		customers = new List<GameObject>();
