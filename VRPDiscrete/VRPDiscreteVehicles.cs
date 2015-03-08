@@ -14,7 +14,7 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 
 	// Use this for initialization
 	protected override void LocalStart () {
-		customer = Resources.Load("Customer") as GameObject;
+		customer = Resources.Load("GameObjects/Customer") as GameObject;
 		DiscreteVRPMap map = new DiscreteVRPMap("Assets/_Data/VRPMaze/" + filename);
 
 		List<Vector3> obstaclePositions = map.GetObstaclePositions();

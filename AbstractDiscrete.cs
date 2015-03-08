@@ -41,8 +41,8 @@ public abstract class AbstractDiscrete : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// Load gameobjects from resources
-		obstacle = Resources.Load("Obstacle") as GameObject;
-		vehicle = Resources.Load("Vehicle") as GameObject;
+		obstacle = Resources.Load("GameObjects/Obstacle") as GameObject;
+		vehicle = Resources.Load("GameObjects/Vehicle") as GameObject;
 
 		// Initialize label printing
 		labelStyle = new GUIStyle();
