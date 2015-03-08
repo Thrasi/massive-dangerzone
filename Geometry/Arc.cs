@@ -35,6 +35,7 @@ public class Arc {
 	}
 
 	// Check if the edge (line segment) intersects with arc (circle segment)
+	// There is still bug here
 	public bool Intersects(Edge e) {
 		Line l = new Line(e);
 

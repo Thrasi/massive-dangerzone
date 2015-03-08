@@ -31,7 +31,7 @@ public class Line {
 	// Returns null if matrix is singular (lines are parallel)
 	public Vector2? Intersection(Line other) {
 		float det = Det2(this.a, this.b, other.a, other.b);
-		if (Mathf.Abs(det) < 0.0001f) {	// Singular matrix, no intersection
+		if (Mathf.Abs(det) < 0.0001f) {		// Singular matrix, no intersection
 			return null;
 		}
 
