@@ -7,9 +7,9 @@ using System.Collections;
 public class CustomerBlink : MonoBehaviour {
 
 	// Some parameters
-	private const float lo = 0.3f;
-	private const float hi = 0.5f;
-	private const float step = 0.005f;
+	public float lo = 0.3f;
+	public float hi = 0.5f;
+	public float step = 0.005f;
 	private bool down;
 
 	// Set down

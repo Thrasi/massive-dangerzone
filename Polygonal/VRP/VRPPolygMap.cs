@@ -21,7 +21,11 @@ public class VRPPolygMap {
 
 
 	/*	First line N, number of vehicles
-		next N lines, start positions of vehicles
+		next N lines, start positions of vehicles x y
+		M, number of customers
+		next M lines, customer positions x y
+		count, number of vertices
+		next count lines, polygon vertex description, x y button
 	*/
 	public VRPPolygMap(string filename) {
 		StreamReader sr = new StreamReader(filename);
@@ -71,5 +75,10 @@ public class VRPPolygMap {
 		} finally {
 			sr.Close();		// Close stream
 		}
+	}
+
+	// Returns a list of customers
+	public List<Vector3> GetCustomerPositions() {
+		return new List<Vector3>(customers);
 	}
 }

@@ -7,9 +7,9 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 	public string filename;
 
 	// Customers list, parent and gameobject
-	protected GameObject customerParent;
-	protected List<GameObject> customers;
-	protected GameObject customer;
+	private GameObject customerParent;
+	private List<GameObject> customers;
+	private GameObject customer;
 	
 
 	// Use this for initialization
