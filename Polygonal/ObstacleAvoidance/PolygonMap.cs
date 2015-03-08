@@ -2,17 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 
-public class PolygonMap {
+public class PolygonMap : AbstractPolygonMap {
 
-	// Number of vehicles
-	public int N { get; protected set; }
-
-	// Start positions of vehicles
-	public Vector3[] starts { get; protected set; }
+	// Goal positions
 	public Vector3[] goals { get; protected set; }
-
-	// Polygonal obstacles
-	public List<Polygon> polys { get; protected set; }
 
 
 	/*	First line N, number of vehicles
@@ -63,7 +56,4 @@ public class PolygonMap {
 		}
 	}
 
-	public List<Vector3> GetVehiclePositions() {
-		return new List<Vector3>(starts);
-	}
 }

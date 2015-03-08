@@ -2,22 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 
-public class VRPPolygMap {
-
-	// Number of vehicles
-	public int N { get; protected set; }
-
-	// Start positions of vehicles
-	public Vector3[] starts { get; protected set; }
+public class VRPPolygMap : AbstractPolygonMap {
 
 	// Number of customers
 	public int M { get; protected set; }
 
 	// Customers positions
 	public Vector3[] customers { get; protected set; }
-
-	// Polygonal obstacles
-	public List<Polygon> polys { get; protected set; }
 
 
 	/*	First line N, number of vehicles

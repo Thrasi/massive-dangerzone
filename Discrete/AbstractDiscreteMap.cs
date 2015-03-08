@@ -17,7 +17,7 @@ public abstract class AbstractDiscreteMap {
 
 	// Neighborhood to use
 	protected Vector3[] neighborhood;
-
+	
 
 	// Set always 4-connected neighborhood
 	protected AbstractDiscreteMap() {
