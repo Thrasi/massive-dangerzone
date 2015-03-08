@@ -7,31 +7,27 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 	public string filename;
 
 	// Customers list, parent and gameobject
-	private GameObject customerParent;
-	private List<GameObject> customers;
-	private GameObject customer;
-
+	protected GameObject customerParent;
+	protected List<GameObject> customers;
+	protected GameObject customer;
+	
 
 	// Use this for initialization
 	protected override void LocalStart () {
 		customer = Resources.Load("GameObjects/Customer") as GameObject;
 		DiscreteVRPMap map = new DiscreteVRPMap("Assets/_Data/VRPMaze/" + filename);
 
-		List<Vector3> obstaclePositions = map.GetObstaclePositions();
-		GenerateObstacles(obstaclePositions);
-		List<Vector3> vehiclePositions = map.GetStartPositions();
-		GenerateVehicles(vehiclePositions);
-		List<Vector3> customerPositions = map.GetCustomerPositions();
-		GenerateCustomers(customerPositions);
+		GenerateObstacles(map.GetObstaclePositions());
+		GenerateVehicles(map.GetStartPositions());
+		GenerateCustomers(map.GetCustomerPositions());
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
 	}
 
 	// Generate customers
-	private void GenerateCustomers(List<Vector3> positions) {
+	protected void GenerateCustomers(List<Vector3> positions) {
 		customerParent = new GameObject();
 		customerParent.name = "Customers";
 		customers = new List<GameObject>();
@@ -43,4 +39,5 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 			customers.Add(obj);
 		}
 	}
+
 }

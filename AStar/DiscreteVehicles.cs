@@ -19,10 +19,8 @@ public class DiscreteVehicles : AbstractDiscrete {
 	protected override void LocalStart () {
 		DiscreteMap map = new DiscreteMap("Assets/_Data/ColAvoidMaze/" + filename);
 		
-		List<Vector3> obstaclePositions = map.GetObstaclePositions();
-		GenerateObstacles(obstaclePositions);
-		List<Vector3> vehiclePositions = map.GetStartPositions();
-		GenerateVehicles(vehiclePositions);
+		GenerateObstacles(map.GetObstaclePositions());
+		GenerateVehicles(map.GetStartPositions());
 
 		SpaceTimeAStar ast = new SpaceTimeAStar(
 			map,
@@ -66,4 +64,5 @@ public class DiscreteVehicles : AbstractDiscrete {
 			}
 		}
 	}
+		
 }
