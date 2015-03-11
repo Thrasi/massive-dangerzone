@@ -68,65 +68,60 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 	}
 
 
-	Simulator sim;
+	DynamicRVO sim;
 	// velocity obstacle
 	void ScenarioTest() {
-		sim = Simulator.Instance;
+		sim = DynamicRVO.Instance;
 		//sim.setTimeStep(0.025f);
-		sim.setAgentDefaults(20*R, N, 10.0f, 5.0f, R, 10000, new RVO.Vector2(0.0f,0.0f));
+		sim.setAgentDefaults(20*R, N, 10.0f, 5.0f, R, Vector3.zero);
 		for (int i = 0; i < N; i++) {
 			Vector3 pos = vehicles[i].transform.position;
-			sim.addAgent(new RVO.Vector2(pos.x, pos.z));
+			sim.addAgent(pos);
 		}
-
+		sim.setMaxAcceleration(maxAcc);
 	}
 
 	bool done = false;
 	private void RVOKinematicUpdate(float dt) {
-
 		if (done) {
 			return;
 		}
 
 		sim.setTimeStep(dt);
 		
-		Vector3[] prevPos = new Vector3[N];
 		for (int i = 0; i < N; i++) {
-			prevPos[i] = ToVec3(sim.getAgentPosition(i));
-			/*if (Vector3.Distance(prevPos[i], goals[i]) < 0.1f) {
-				sim.setAgentPrefVelocity(i, new RVO.Vector2(0, 0));
-			} else {
-				Vector3 pref = goals[i] - prevPos[i];
-				sim.setAgentPrefVelocity(i, ToVec2(pref));
-			}*/
-
-			//if (Vector3.Distance(prevPos[i], goals[i]) < 3 ) {
-			//	sim.setAgentPrefVelocity(i, ToVec2((goals[i] - prevPos[i]) / 2));
-			//} else {
-				sim.setAgentPrefVelocity(i, ToVec2(PrefVelocity(
-					velocities[i], prevPos[i], goals[i], maxAcc, dt)));
-			//}
+			Vector3 currPos = sim.getAgentPosition(i);
+			sim.setAgentPrefVelocity(i, PrefVelocity(
+				sim.getAgentVelocity(i), currPos, goals[i], maxAcc, dt));
 		}
 
-		sim.doStep();
-
-		Vector3[] currPos = new Vector3[N];
+/*		Vector3[] ppos = new Vector3[N];
 		for (int i = 0; i < N; i++) {
-			currPos[i] = ToVec3(sim.getAgentPosition(i));
+			ppos[i] = sim.getAgentPosition(i);
+			//velocities[i] = sim.getAgentVelocity(i);
+		}
+*/
+		sim.doStep();
+/*
+		for (int i = 0; i < N; i++) {
+			Vector3 currPos = sim.getAgentPosition(i);
 			
-			Vector3 desiredVelocity = ToVec3(sim.getAgentVelocity(i));
+			Vector3 desiredVelocity = sim.getAgentVelocity(i);
 			Vector3 currentVelocity = velocities[i];
 			Vector3 steer = desiredVelocity - currentVelocity;
-			if (Random.value < 0.1f && Vector3.Distance(currPos[i], goals[i]) > 10) {
+			//if (Random.value < 0.1f && Vector3.Distance(currPos, goals[i]) > 10) {
 			//	steer = Random.onUnitSphere;
 			//	steer.y = 0;
-			}
+			//}
 			velocities[i] += steer.normalized * Mathf.Min(maxAcc*dt, steer.magnitude);
+			sim.setAgentPosition(i, ppos[i] + velocities[i]*dt);
+			//sim.setAgentVelocity(i, velocities[i]);
+		}*/
 
-			vehicles[i].transform.Translate(velocities[i]*dt, Space.World);
-			sim.agents_[i].position_ = ToVec2(vehicles[i].transform.position);
+		for (int i = 0; i < N; i++) {
+			velocities[i] = sim.getAgentVelocity(i);
+			vehicles[i].transform.position = sim.getAgentPosition(i);
 		}
-		
 		done = AllReached();
 	}
 
@@ -154,15 +149,6 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		}
 		return true;
 	}
-
-	private static Vector3 ToVec3(RVO.Vector2 v) {
-		return new Vector3(v.x(), 0, v.y());
-	}
-
-	private static RVO.Vector2 ToVec2(Vector3 v) {
-		return new RVO.Vector2(v.x, v.z);
-	}
-
 
 	// Taking current position and velocity and goal position, calculates
 	// steering (acceleraton) needed to reach goal. Returned vector is normalized
@@ -218,7 +204,7 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 			Gizmos.DrawSphere(goals[i], R/4);
 		}
 	}
-
+/*
 	private void RVODynamicUpdate(float dt) {
 		if (done) {
 			return;
@@ -260,7 +246,7 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		done = reached;
 	}
 
-
+*/
 	private void ForcesUpdate(int neighborhood, float dt) {
 		for (int i = 0; i < N; i++) {
 			if (!activeV[i]) {
