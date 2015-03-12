@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class VRPPolygonalVehicles : AbstractVehicles {
+public class VRPPolygonalVehicles : AbstractPolygonalVehicles {
 
 	// Customers list, parent and gameobject
 	private GameObject customerParent;
@@ -10,9 +10,6 @@ public class VRPPolygonalVehicles : AbstractVehicles {
 
 	// Name of the file for the map
 	public string filename;
-
-	// Material for obstacles
-	private Material material;
 
 
 	// Use this for initialization
@@ -29,16 +26,6 @@ public class VRPPolygonalVehicles : AbstractVehicles {
 	
 	// Update is called once per frame
 	void Update () {
-	}
-
-	// Generate and render all obstacles
-	private void GenerateObstacles(IEnumerable<Polygon> polys) {
-		GameObject parent = new GameObject();
-		parent.name = "Polygonal Obstacles";
-		foreach (Polygon pol in polys) {
-			GameObject go = pol.ToGameObject(material);
-			go.transform.parent = parent.transform;
-		}
 	}
 
 	// Generate customers

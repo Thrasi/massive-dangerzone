@@ -16,4 +16,9 @@ public abstract class AbstractPolygonMap {
 	public List<Vector3> GetVehiclePositions() {
 		return new List<Vector3>(starts);
 	}
+
+	// Returns a list of polygonal obstacles
+	public List<Polygon> GetObstacles() {
+		return new List<Polygon>(polys);
+	}
 }

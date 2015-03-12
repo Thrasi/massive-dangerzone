@@ -11,6 +11,9 @@ public class Edge {
 	// Const to ensure that the algorithms finds proper intersections
 	private const float eps = 0.0001f;
 
+	// Const for angle of point being on the edge
+	private const float angEps = 0.1f;
+
 	// Two vertices that define the edge
 	public Vector3 v { get; private set; }
 	public Vector3 w { get; private set; }
@@ -20,6 +23,11 @@ public class Edge {
 	public Edge(Vector3 v, Vector3 w) {
 		this.v = v;
 		this.w = w;
+	}
+
+	// Returns length of the edge
+	public float Length() {
+		return Vector3.Distance(v, w);
 	}
 
 	// Checks if two edges intersect
@@ -60,6 +68,59 @@ public class Edge {
 			&&	pxPe >= Mathf.Min(v2.x, w2.x) && pxMe <= Mathf.Max(v2.x, w2.x)
 			&&	pyPe >= Mathf.Min(v1.z, w1.z) && pyMe <= Mathf.Max(v1.z, w1.z)
 			&&	pyPe >= Mathf.Min(v2.z, w2.z) && pyMe <= Mathf.Max(v2.z, w2.z);
+	}
+
+	// Finds intersecting point of 2 edges, returns null if they dont intersect
+	public Vector3? Intersection(Edge other) {
+		// Create lines
+		Line l1 = new Line(this);
+		Line l2 = new Line(other);
+
+		// Find intersect
+		Vector3? tmp = l1.Intersection(l2);
+		if (!tmp.HasValue) {	// No intersection
+			return null;
+		}
+		Vector3 p = tmp.Value;
+
+		// Point must be on both edges
+		if (this.IsOn(p) && other.IsOn(p)) {
+			return p;
+		}
+		return null;
+	}
+
+	// Checks whether a point is on the egde
+	private bool IsOn(Vector3 point) {
+		float len = Length();
+		return Vector3.Angle(point-v, w-v) < angEps
+			&& Vector3.Angle(point-w, v-w) < angEps
+			&& Vector3.Distance(point, v) <= len
+			&& Vector3.Distance(point, w) <= len;
+	}
+
+	// Distance from point to edge
+	public float Distance(Vector3 point) {
+		float a = Vector3.Distance(point, v);
+		float b = Vector3.Distance(point, w);
+		float c = Vector3.Distance(v, w);
+		float aa = a*a, bb = b*b, cc = c*c;
+		if (aa + cc > bb && bb + cc > aa) {		// Acute
+			return new Line(this).Distance(point);
+		}
+		return Mathf.Min(a, b);
+	}
+
+	// Returns vector that is vertical to this edge and directed towards the edge
+	// Returned vector is normalized
+	public Vector3 Vertical(Vector3 point) {
+		Vector3 edgeVec = w - v;
+		Vector3 pointVec = point - v;
+		float dir = Vector3.Cross(edgeVec, pointVec).y;
+		if (dir < 0) {
+			return (Quaternion.Euler(0, 90, 0) * edgeVec).normalized;
+		}
+		return (Quaternion.Euler(0, -90, 0) * edgeVec).normalized;
 	}
 
 	// Draws the edge using Gizmos

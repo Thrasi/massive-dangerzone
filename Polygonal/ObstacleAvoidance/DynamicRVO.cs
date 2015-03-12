@@ -58,6 +58,20 @@ public class DynamicRVO {
 		velocities.Add(defaultVelocity);
 	}
 
+	// Adds polygonal obstacles
+	public void addObstacle(Polygon pol) {
+		List<RVO.Vector2> vertices = new List<RVO.Vector2>();
+		foreach (Vector3 v in pol.Vertices()) {
+			vertices.Add(ToVec2(v));
+		}
+		sim.addObstacle(vertices);
+	}
+
+	// Make obstacles account in simulation
+	public void processObstacles() {
+		sim.processObstacles();
+	}
+
 	// Setting simulation time step
 	public void setTimeStep(float dt) {
 		this.dt = dt;

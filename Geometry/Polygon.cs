@@ -28,6 +28,16 @@ public class Polygon {
 		edges.Add(new Edge(vertices[0], vertices[n-1]));
 	}
 
+	// Returns an enumerable of vertices
+	public IEnumerable<Vector3> Vertices() {
+		return vertices;
+	}
+
+	// Returns an inumerable of edges
+	public IEnumerable<Edge> Edges() {
+		return edges;
+	}
+
 	// Checks if the polygon contains the edge
 	public bool ContainsEdge(Edge e) {
 		return edges.Contains(e);
@@ -69,6 +79,18 @@ public class Polygon {
 			}
 		}
 		return count % 2 == 1;
+	}
+
+	// Finds all intersections of this polygon and an edge
+	public List<Vector3> Intersections(Edge edge) {
+		List<Vector3> points = new List<Vector3>();
+		foreach (Edge e in edges) {
+			Vector3? interPoint = edge.Intersection(e);
+			if (interPoint.HasValue) {
+				points.Add(interPoint.Value);
+			}
+		}
+		return points;
 	}
 
 	// Get iterator for edges

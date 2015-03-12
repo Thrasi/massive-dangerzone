@@ -1,10 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using RVO;
 
-public class ObstacleAvoidanceEmpty : AbstractVehicles {
+
+
+
+// you have TODOs in this file
+// there is case when obstacles will fail, check it out and try to fix it
+
+
+
+public class ObstacleAvoidance : AbstractPolygonalVehicles {
 
 	// Filename for map
 	public string filename;
@@ -14,6 +20,18 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 
 	// Maximum acceleration
 	public float maxAcc = 1.0f;
+
+	// How far should I check for vehicles
+	public float distanceNeighborhood = 40.0f;
+
+	// Number of vehicles to take into account
+	public int neighborhoodSize = 12;
+
+	// Time horizon for checing collision, how far in time to see if the collide
+	public float timeHorizon = 10.0f;
+
+	// Same as time horizon but used for obstacles
+	public float timeHorizonObst = 5.0f;
 
 	
 	// Distance condition to end
@@ -35,6 +53,9 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 	// Their velocities (not used at the moment)
 	private Vector3[] velocities;
 
+	// Preferred velocities (used only for drawing and debugging)
+	private Vector3[] prefs;
+
 	// If all vehicles are at their goals
 	private bool done = false;
 
@@ -53,30 +74,46 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 	// Use this for initialization
 	void Start () {
 		// Load vehicles and set size
+		material = Resources.Load("Materials/ObstacleMaterial") as Material;
 		vehicle = Resources.Load("GameObjects/SphericalVehicle") as GameObject;
-		vehicle.transform.localScale = new Vector3(R, R, R);
+		vehicle.transform.localScale = new Vector3(2*R, 2*R, 2*R);
 		
 		// Read map and set some variables
 		PolygonMap map = new PolygonMap("Assets/_Data/ColAvoidPolyg/" + filename);
 		N = map.N;
 		goals = map.goals;
-		velocities = Enumerable.Repeat(Vector3.zero, N).ToArray();		
+		velocities = Enumerable.Repeat(Vector3.zero, N).ToArray();
+		prefs = Enumerable.Repeat(Vector3.zero, N).ToArray();
+		obstacles = map.GetObstacles();
+		GenerateObstacles(obstacles);	
 		GenerateVehicles(map.GetVehiclePositions());
 
 		// Initialize RVO
 		sim = DynamicRVO.Instance;
-		sim.setAgentDefaults(40, N, 10.0f, 5.0f, R/2, Vector3.zero);
+		sim.setAgentDefaults(
+			distanceNeighborhood,
+			neighborhoodSize,
+			timeHorizon,
+			timeHorizonObst,
+			R,
+			Vector3.zero
+		);
 		for (int i = 0; i < N; i++) {
 			sim.addAgent(vehicles[i].transform.position);
 		}
 		sim.setMaxAcceleration(maxAcc);
-
+		foreach (Polygon pol in obstacles) {
+			sim.addObstacle(pol);
+		}
+		sim.processObstacles();
+		
 		// Initialize label printing
 		labelStyle = new GUIStyle();
 		labelStyle.normal.textColor = Color.black;
 		labelRect = new Rect(20, 20, 20, 20);
 		started = Time.realtimeSinceStartup;
 	}
+
 
 	// Shows stopwatch and final time when its done
 	void OnGUI() {
@@ -88,7 +125,8 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		);
 	}
 
-	// Update is called once per frame
+	// Only call to update function, easier to change it if some better update
+	// is discovered
 	void Update () {
 		RVODynamicUpdate(Time.deltaTime);
 	}
@@ -103,11 +141,40 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		// Set time step
 		sim.setTimeStep(dt);
 		
-		// Set preffered velocities
+		// Set preferred velocities
 		for (int i = 0; i < N; i++) {
-			Vector3 prefVel = PrefVelocity(
-				sim.getAgentVelocity(i), sim.getAgentPosition(i), goals[i], maxAcc, dt);
+			// Checking for edges of the ball, not the center
+			Vector3 currPos = sim.getAgentPosition(i);
+			Vector3 goalVec = (goals[i] - currPos).normalized;
+			Vector3 pointA = currPos + Quaternion.Euler(0, 90, 0) * goalVec * R;
+			Vector3 pointB = currPos + Quaternion.Euler(0, -90, 0) * goalVec * R;
+			Edge toGoalA = new Edge(pointA, goals[i]);
+			Edge toGoalB = new Edge(pointB, goals[i]);
+
+			// Distance to closest intersection with obstacles
+			float distClosest = Mathf.Min(
+				DistToClosest(toGoalA, currPos),
+				DistToClosest(toGoalB, currPos)
+			);
+			Tuple<Edge, float> wall = ClosestWall(currPos);
+			Vector3 prefVel;
+			if (distClosest == float.MaxValue		// No intersections on path
+				|| wall._1 == null					// No obstacles
+				|| wall._2 > 3*R 					// Obstacle too far
+				|| distClosest > 4*R) {				// Intersection too far
+				//TODO tweaks shits above
+
+				// In this case use preferred velocity towards the goal
+				prefVel = PrefVelocity(
+					sim.getAgentVelocity(i), currPos, goals[i], maxAcc, dt);
+			} else {
+				Vector3 vert = wall._1.Vertical(currPos);
+				prefVel = Quaternion.Euler(0, -90, 0) * vert*10;	//TODO tweak this shit
+			}
+			
+			// Set preferred
 			sim.setAgentPrefVelocity(i, prefVel);
+			prefs[i] = prefVel;
 		}
 
 		// Do a simulation step
@@ -175,7 +242,7 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 	}
 
 	// Although this function is very similar to Steer, I still prefer having both
-	// because they have small differences
+	// because they have small differences and this one might need tweaks in future
 	// This one returns preferred velocity of an agent, that includes stopping in
 	// the end with precision
 	private static Vector3 PrefVelocity(Vector3 oldVelocity,
@@ -194,58 +261,23 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		return desired;
 	}
 
+	// Draw goals of vehicles in their respective colors
 	void OnDrawGizmos() {
+		// Goals
 		for (int i = 0; i < N; i++) {
 			Gizmos.color = vehicles[i].renderer.material.color;
-			Gizmos.DrawSphere(goals[i], R/4);
+			Gizmos.DrawSphere(goals[i], R/2);
 		}
+
+		// Preferred velocities
+		// Enable this to debug with preferred velocities
+		/*if (prefs != null) {
+			Gizmos.color = Color.red;
+			for (int i = 0; i < N; i++) {
+				Vector3 currPos = vehicles[i].transform.position;
+				Gizmos.DrawLine(currPos, currPos + prefs[i]);
+			}
+		}*/
 	}
 
-	// Finds positions of K closest vehicles to vehicle with index i
-	private IEnumerable<KeyValuePair<Vector3, float>> KNearest(int i, int K) {
-		FFFBHeap<Vector3> closestVehicles = new FFFBHeap<Vector3>(K);
-		Vector3 currPos = vehicles[i].transform.position;
-		for (int j = 0; j < N; j++) {
-			if (i == j) {
-				continue;
-			}
-			Vector3 other = vehicles[j].transform.position;
-			float d = Vector3.Distance(currPos, other);
-			closestVehicles.Insert(d, other);
-		}
-		return closestVehicles;
-	}
-
-	// Other method
-	private void ForcesUpdate(int neighborhood, float dt) {
-		for (int i = 0; i < N; i++) {
-			if (!activeV[i]) {
-				continue;
-			}
-			Vector3 currPos = vehicles[i].transform.position;
-			Vector3 goalPos = goals[i];
-			float dist = Vector3.Distance(currPos, goalPos);
-			if (dist < 0.1f && velocities[i].magnitude < 0.5f) {
-				activeV[i] = false;
-				continue;
-			}
-			
-			Vector3 steer = Steer(velocities[i], currPos, goalPos, maxAcc, Time.deltaTime);
-			Vector3 mov = steer.normalized;
-			float v = velocities[i].magnitude;
-			
-			foreach (KeyValuePair<Vector3, float> kv in KNearest(i, neighborhood)) {
-				float d = kv.Value;
-				Vector3 other = kv.Key;
-				if (d < 5*R) {
-					mov += 7*(currPos - other).normalized / (d);
-				}	
-			}
-			
-			mov = mov.normalized * maxAcc;
-			velocities[i] += mov * dt;
-			vehicles[i].transform.Translate(velocities[i] * dt, Space.World);
-		}
-	}
-
-}
+}//End class

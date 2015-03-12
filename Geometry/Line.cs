@@ -32,6 +32,12 @@ public class Line {
 		return a/b;
 	}
 
+	// Returns distance from this line to given point
+	public float Distance(Vector3 point) {
+		float x = point.x, y = point.z;
+		return Mathf.Abs(a*x + b*y + c) / Mathf.Sqrt(a*a + b*b);
+	}
+
 	// Finds intersection between this and other line
 	// Returns null if matrix is singular (lines are parallel)
 	public Vector3? Intersection(Line other) {
