@@ -6,144 +6,134 @@ using RVO;
 
 public class ObstacleAvoidanceEmpty : AbstractVehicles {
 
+	// Filename for map
 	public string filename;
 
+	// Vehicle radius
 	public float R;
 
+	// Maximum acceleration
 	public float maxAcc = 1.0f;
 
-	private int N;
-	private Vector3[] goals;
-	private Vector3[] velocities;
-	private bool[] activeV;
+	
+	// Distance condition to end
+	private const float END_DIST = 0.1f;
 
-	private float[,] slopes;
+	// Velocity condition to end
+	private const float END_VEL = 0.5f;
 
+	// Slowing distance cant be less than this
 	private const float SLOWING_MIN = 3;
 
+
+	// Number of vehicles
+	private int N;
+
+	// Their goals
+	private Vector3[] goals;
+
+	// Their velocities (not used at the moment)
+	private Vector3[] velocities;
+
+	// If all vehicles are at their goals
+	private bool done = false;
+
+	// Simulator
+	private DynamicRVO sim;
+
+
 	// For label
-	protected float cost;
-	protected float startup;
 	private GUIStyle labelStyle;
 	private Rect labelRect;
 	private string strCost;
+	private float cost;
+	private float started;
 
 
 	// Use this for initialization
 	void Start () {
+		// Load vehicles and set size
 		vehicle = Resources.Load("GameObjects/SphericalVehicle") as GameObject;
 		vehicle.transform.localScale = new Vector3(R, R, R);
 		
+		// Read map and set some variables
 		PolygonMap map = new PolygonMap("Assets/_Data/ColAvoidPolyg/" + filename);
 		N = map.N;
 		goals = map.goals;
-		velocities = Enumerable.Repeat(Vector3.zero, N).ToArray();
-		activeV = Enumerable.Repeat(true, N).ToArray();
-		slopes = new float[N,N];
-		
+		velocities = Enumerable.Repeat(Vector3.zero, N).ToArray();		
 		GenerateVehicles(map.GetVehiclePositions());
-		ScenarioTest();
+
+		// Initialize RVO
+		sim = DynamicRVO.Instance;
+		sim.setAgentDefaults(40, N, 10.0f, 5.0f, R/2, Vector3.zero);
+		for (int i = 0; i < N; i++) {
+			sim.addAgent(vehicles[i].transform.position);
+		}
+		sim.setMaxAcceleration(maxAcc);
+
 		// Initialize label printing
 		labelStyle = new GUIStyle();
 		labelStyle.normal.textColor = Color.black;
 		labelRect = new Rect(20, 20, 20, 20);
+		started = Time.realtimeSinceStartup;
 	}
 
-	
+	// Shows stopwatch and final time when its done
+	void OnGUI() {
+		GUI.Label(
+			labelRect,
+			"Time: " + Time.realtimeSinceStartup.ToString("0.00")
+				+ "\nResult: " + cost.ToString("0.00"),
+			labelStyle
+		);
+	}
+
 	// Update is called once per frame
 	void Update () {
-		//ForcesUpdate(3, Time.deltaTime);
-		//print(velocities[0].magnitude);
-		RVOKinematicUpdate(Time.deltaTime);
+		RVODynamicUpdate(Time.deltaTime);
 	}
 
-	void OnGUI() {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < N; i++) {
-			sb.Append("Vehicle ").Append(i).Append(": ")
-				.Append(velocities[i].magnitude.ToString("0.00")).Append('\n');
-		}
-		sb.Append("Time: ").Append(Time.realtimeSinceStartup.ToString("0.00"));
-		GUI.Label(labelRect, sb.ToString(), labelStyle);
-	}
-
-
-	DynamicRVO sim;
-	// velocity obstacle
-	void ScenarioTest() {
-		sim = DynamicRVO.Instance;
-		//sim.setTimeStep(0.025f);
-		sim.setAgentDefaults(20*R, N, 10.0f, 5.0f, R, Vector3.zero);
-		for (int i = 0; i < N; i++) {
-			Vector3 pos = vehicles[i].transform.position;
-			sim.addAgent(pos);
-		}
-		sim.setMaxAcceleration(maxAcc);
-	}
-
-	bool done = false;
-	private void RVOKinematicUpdate(float dt) {
+	// Makes update for dynamic point RVO
+	private void RVODynamicUpdate(float dt) {
+		// All vehicles are at their goals
 		if (done) {
 			return;
 		}
 
+		// Set time step
 		sim.setTimeStep(dt);
 		
+		// Set preffered velocities
 		for (int i = 0; i < N; i++) {
-			Vector3 currPos = sim.getAgentPosition(i);
-			sim.setAgentPrefVelocity(i, PrefVelocity(
-				sim.getAgentVelocity(i), currPos, goals[i], maxAcc, dt));
+			Vector3 prefVel = PrefVelocity(
+				sim.getAgentVelocity(i), sim.getAgentPosition(i), goals[i], maxAcc, dt);
+			sim.setAgentPrefVelocity(i, prefVel);
 		}
 
-/*		Vector3[] ppos = new Vector3[N];
-		for (int i = 0; i < N; i++) {
-			ppos[i] = sim.getAgentPosition(i);
-			//velocities[i] = sim.getAgentVelocity(i);
-		}
-*/
+		// Do a simulation step
 		sim.doStep();
-/*
-		for (int i = 0; i < N; i++) {
-			Vector3 currPos = sim.getAgentPosition(i);
-			
-			Vector3 desiredVelocity = sim.getAgentVelocity(i);
-			Vector3 currentVelocity = velocities[i];
-			Vector3 steer = desiredVelocity - currentVelocity;
-			//if (Random.value < 0.1f && Vector3.Distance(currPos, goals[i]) > 10) {
-			//	steer = Random.onUnitSphere;
-			//	steer.y = 0;
-			//}
-			velocities[i] += steer.normalized * Mathf.Min(maxAcc*dt, steer.magnitude);
-			sim.setAgentPosition(i, ppos[i] + velocities[i]*dt);
-			//sim.setAgentVelocity(i, velocities[i]);
-		}*/
 
+		// Move vehicle and set velocities
 		for (int i = 0; i < N; i++) {
 			velocities[i] = sim.getAgentVelocity(i);
 			vehicles[i].transform.position = sim.getAgentPosition(i);
 		}
+
+		// Check if all vehicles have reached their goals
 		done = AllReached();
-	}
-
-	// Finds positions of K closest vehicles to vehicle with index i
-	private IEnumerable<KeyValuePair<Vector3, float>> KNearest(int i, int K) {
-		FFFBHeap<Vector3> closestVehicles = new FFFBHeap<Vector3>(K);
-		Vector3 currPos = vehicles[i].transform.position;
-		for (int j = 0; j < N; j++) {
-			if (i == j) {
-				continue;
-			}
-			Vector3 other = vehicles[j].transform.position;
-			float d = Vector3.Distance(currPos, other);
-			closestVehicles.Insert(d, other);
+		if (done) {
+			cost = Time.realtimeSinceStartup - started;
 		}
-		return closestVehicles;
 	}
 
+	// Checks if all vehicles have reached the goal. Vehicles has reached the goal if
+	// it's closer than END_DIST and its speed is less than END_VEL
 	private bool AllReached() {
 		for (int i = 0; i < N; i++) {
 			Vector3 v3pos = vehicles[i].transform.position;
-			if (!(Vector3.Distance(v3pos, goals[i]) < 0.1f) || !(velocities[i].magnitude < 0.5f)) {
+			if (!(Vector3.Distance(v3pos, goals[i]) < END_DIST)
+				|| !(velocities[i].magnitude < END_VEL)) {
+				
 				return false;
 			}
 		}
@@ -157,11 +147,13 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		return (desired - velocity).normalized;
 	}
 
+	// Acceleration in time step used for maximum braking
 	private static Vector3 Brake(Vector3 velocity, float maxAcc, float dt) {
 		Vector3 direction = -velocity.normalized;
 		return direction * Mathf.Min(velocity.magnitude, maxAcc*dt);
 	}
 
+	// Stopping distance
 	private static float StoppingDistance(float speed, float maxAcc) {
 		return 0.5f * speed * speed / maxAcc;
 	}
@@ -182,15 +174,19 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 		return Mathf.Min(maxAcc*dt, steer.magnitude) * steer.normalized;
 	}
 
+	// Although this function is very similar to Steer, I still prefer having both
+	// because they have small differences
+	// This one returns preferred velocity of an agent, that includes stopping in
+	// the end with precision
 	private static Vector3 PrefVelocity(Vector3 oldVelocity,
 		Vector3 pos, Vector3 goal, float maxAcc, float dt) {
 		
 		float dist = Vector3.Distance(pos, goal);
-		if (dist < 3) {
+		if (dist < SLOWING_MIN) {
 			return (goal - pos) / 2;
 		}
 		float speed = oldVelocity.magnitude;
-		float slowing = Mathf.Max(StoppingDistance(speed, maxAcc), 3);
+		float slowing = Mathf.Max(StoppingDistance(speed, maxAcc), SLOWING_MIN);
 		Vector3 desired =  (goal - pos).normalized * (speed + maxAcc*dt);
 		if (dist < slowing) {
 			desired /= slowing;
@@ -204,49 +200,23 @@ public class ObstacleAvoidanceEmpty : AbstractVehicles {
 			Gizmos.DrawSphere(goals[i], R/4);
 		}
 	}
-/*
-	private void RVODynamicUpdate(float dt) {
-		if (done) {
-			return;
-		}
-		sim.setTimeStep(dt);
-		Vector3[] prevPos = new Vector3[N];
-		for (int i = 0; i < N; i++) {
-			RVO.Vector2 agentPos = sim.getAgentPosition(i);
-			Vector3 v3pos = ToVec3(agentPos);
-			prevPos[i] = v3pos;
-			if (Vector3.Distance(v3pos, goals[i]) < 0.1f) {
-				sim.setAgentPrefVelocity(i, new RVO.Vector2(0, 0));
-			} else {
-				Vector3 pref = goals[i] - v3pos;
-				sim.setAgentPrefVelocity(i, ToVec2(pref));
-			}
-		}
 
-		sim.doStep();
-		Vector3[] currPos = new Vector3[N];
-		for (int i = 0; i < N; i++) {
-			RVO.Vector2 agentPos = sim.getAgentPosition(i);
-			currPos[i] = ToVec3(agentPos);
-			Vector3 desired = currPos[i] - prevPos[i];
-			Vector3 current = velocities[i];
-			Vector3 steer = desired - current;
-			velocities[i] += steer.normalized * Mathf.Min(maxAcc*dt, steer.magnitude);
-			vehicles[i].transform.Translate(velocities[i]*dt, Space.World);
-		}
-		
-		bool reached = true;
-		for (int i = 0; i < N; i++) {
-			Vector3 v3pos = vehicles[i].transform.position;
-			if (!(Vector3.Distance(v3pos, goals[i]) < 0.1f)) {
-				reached = false;
-				break;
+	// Finds positions of K closest vehicles to vehicle with index i
+	private IEnumerable<KeyValuePair<Vector3, float>> KNearest(int i, int K) {
+		FFFBHeap<Vector3> closestVehicles = new FFFBHeap<Vector3>(K);
+		Vector3 currPos = vehicles[i].transform.position;
+		for (int j = 0; j < N; j++) {
+			if (i == j) {
+				continue;
 			}
+			Vector3 other = vehicles[j].transform.position;
+			float d = Vector3.Distance(currPos, other);
+			closestVehicles.Insert(d, other);
 		}
-		done = reached;
+		return closestVehicles;
 	}
 
-*/
+	// Other method
 	private void ForcesUpdate(int neighborhood, float dt) {
 		for (int i = 0; i < N; i++) {
 			if (!activeV[i]) {
