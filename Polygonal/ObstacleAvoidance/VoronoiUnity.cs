@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Voronoi2;
+using ObstaclesExt;
 
 public class VoronoiUnity {
 
@@ -42,8 +43,8 @@ public class VoronoiUnity {
 		foreach (GraphEdge e in gEdges) {
 			Vector3 v1 = new Vector3((float)e.x1, 0, (float)e.y1);
 			Vector3 v2 = new Vector3((float)e.x2, 0, (float)e.y2);
-			bool ins1 = IsInside(v1);
-			bool ins2 = IsInside(v2);
+			bool ins1 = obstacles.IsInside(v1);
+			bool ins2 = obstacles.IsInside(v2);
 			
 			// Adding vertices if they are not inside any of obstacles
 			if (!ins1) { vertices.Add(v1); }
@@ -52,7 +53,7 @@ public class VoronoiUnity {
 			// Adding edges if they are not inside obstacles and do not intersect
 			// with any of the obstacles, and only if connectAll is false
 			Edge edge = new Edge(v1, v2);
-			if (!connectAll && !Intersects(edge) && !ins1 && !ins2) {
+			if (!connectAll && !this.obstacles.Intersects(edge) && !ins1 && !ins2) {
 				edges.Add(edge);
 			}
 		}
@@ -65,7 +66,7 @@ public class VoronoiUnity {
 					Vector3 v1 = vertices[i];
 					Vector3 v2 = vertices[j];
 					Edge e = new Edge(v1, v2);
-					if (!Intersects(e)) {
+					if (!this.obstacles.Intersects(e)) {
 						edges.Add(e);
 					}
 				}
@@ -74,23 +75,4 @@ public class VoronoiUnity {
 
 	}// End constructor
 
-	// Checks if the point is inside any of obstacles
-	private bool IsInside(Vector3 v) {
-		foreach (Polygon p in obstacles) {
-			if (p.IsInside(v)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	// Checks if edge intersects with any of the obstacles
-	private bool Intersects(Edge e) {
-		foreach (Polygon p in obstacles) {
-			if (p.Intersects(e)) {
-				return true;
-			}
-		}
-		return false;
-	}
-}
+}//End class

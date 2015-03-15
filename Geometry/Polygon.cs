@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System;
 
 public class Polygon {
@@ -15,13 +15,9 @@ public class Polygon {
 
 	// Constructor creates a list of edges and vertices
 	public Polygon(IEnumerable<Vector3> vs) {
-		vertices = new List<Vector3>();
-		foreach (Vector3 v in vs) {
-			vertices.Add(v);
-		}
-		
+		this.vertices = new List<Vector3>(vs);
 		int n = vertices.Count;
-		edges = new HashSet<Edge>();
+		this.edges = new HashSet<Edge>();
 		for (int i = 0; i < n-1; i++) {
 			edges.Add(new Edge(vertices[i], vertices[i+1]));
 		}
@@ -93,11 +89,6 @@ public class Polygon {
 		return points;
 	}
 
-	// Get iterator for edges
-	public IEnumerable<Edge> IterEdges() {
-		return edges;
-	}
-
 	// Not my function
 	// Creates a game object for this polygon
 	// I have added UVs
@@ -141,5 +132,24 @@ public class Polygon {
         MeshFilter filter = go.AddComponent(typeof(MeshFilter)) as MeshFilter;
         filter.mesh = msh;
         return go;
+	}
+
+	// Equals for polygons, defines as equal if they have
+	// the same vertices in the same order
+	public override bool Equals(object other) {
+		if (!(other is Polygon)) {
+			return false;
+		}
+		Polygon obj = other as Polygon;
+		return this.vertices.SequenceEqual(obj.vertices);
+	}
+
+	// To make the compiler stop complaining
+	public override int GetHashCode() {
+		int hash = 19;
+		foreach (Vector3 v in vertices) {
+			hash = hash*31 + v.GetHashCode();
+		}
+		return hash;
 	}
 }
