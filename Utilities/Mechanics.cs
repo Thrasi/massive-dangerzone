@@ -18,6 +18,12 @@ namespace MechanicsUtility {
 			return (desired - velocity).normalized;
 		}
 
+		// Same as above but returns not normalized steer
+		public static Vector3 SteerMax(Vector3 position, Vector3 velocity, Vector3 goal) {
+			Vector3 desired = goal - position;
+			return desired - velocity;
+		}
+
 		// Acceleration in time step used for maximum braking
 		public static Vector3 Brake(Vector3 velocity, float maxAcc, float dt) {
 			Vector3 direction = -velocity.normalized;
@@ -39,7 +45,8 @@ namespace MechanicsUtility {
 			float slowing = Mathf.Max(StoppingDistance(speed, maxAcc), SLOWING_MIN);
 			Vector3 desired =  (goal - pos).normalized * (speed + maxAcc*dt);
 			if (dist < slowing) {
-				desired /= slowing;
+				//desired /= slowing;
+				desired = (goal-pos);	// Works for now
 			}
 			Vector3 steer = desired - oldVelocity;
 			return Mathf.Min(maxAcc*dt, steer.magnitude) * steer.normalized;
