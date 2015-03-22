@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+/**
+	All angle to rotate are -90 because tank model is also rotated which is weird.
+**/
 public class DiffDriveLeaderFollower : LeaderFollower<DiffDriveVehicle> {
 
 	// Max speed

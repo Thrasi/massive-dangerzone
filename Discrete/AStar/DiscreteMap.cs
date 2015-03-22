@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System;
 
 /*
 	Class for modelling discrete maps. Has a map of obstacles and
@@ -11,6 +12,9 @@ public class DiscreteMap : AbstractDiscreteMap {
 
 	// Goal coordinats for all vehicles
 	public Vector3[] goals { get; protected set; }
+
+	// Costs
+	public float[] costs;
 
 
 	/* 	Reads the file for discrete map, the file should have this format:
@@ -52,6 +56,38 @@ public class DiscreteMap : AbstractDiscreteMap {
 		}
 	}
 
+	// Heuristic manhattan
+	private static float h(Vector3 x, Vector3 y) {
+		return Mathf.Abs(x.x - y.x) + Mathf.Abs(x.z - y.z);
+	}
+
+	// Rearrange so that highest cost path is first
+	public void ReArrange() {
+		if (costs != null) {		// Already arranged
+			return;
+		}
+
+		// Run astars on all start goal pairs
+		costs = new float[N];
+		for (int i = 0; i < N; i++) {
+			AStar ast = new AStar(this, starts[i], goals[i], h);
+			costs[i] = ast.cost;
+		}
+
+		// Copy array, sorting is needed twice
+		float[] costsCopy = new float[N];
+		Array.Copy(costs, costsCopy, N);
+
+		// Sort arrays
+		Array.Sort(costs, starts);
+		Array.Sort(costsCopy, goals);
+
+		// Reverse arrays, I am too lazy to create IComparers
+		Array.Reverse(costs);
+		Array.Reverse(starts);
+		Array.Reverse(goals);
+	}
+
 	// Returns enumerable of successors and costs to state s
 	public IEnumerable<Tuple<State, float>> Successors(State s) {
 		List<Tuple<State, float>> succ = new List<Tuple<State, float>>();
@@ -67,6 +103,12 @@ public class DiscreteMap : AbstractDiscreteMap {
 			succ.Add(Tuple.Create(new State(neighbor, s.t + 1), cost));
 		}
 		return succ;
-	} 
+	}
+
+	// Returns adjacent states, but vectors and costs
+	public IEnumerable<Tuple<Vector3, float>> Successors(Vector3 v) {
+		State s = new State(v, 0);
+		return Successors(s).Select(t => Tuple.Create(t._1.pos, 1.0f));
+	}
 
 }

@@ -9,6 +9,9 @@ public class DiffDriveVehicle : DirectedVehicle<DiffDriveVehicle> {
 	
 	// Max angular velocity
 	public static float maxOmega;
+
+	// Direction of the vehicle, its different because tank is fucked up
+	public override Vector3 direction { get { return gobj.transform.right; } }
 	
 
 	// Constructor

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Geometry;
 
 namespace MechanicsUtility {
 
@@ -70,6 +71,12 @@ namespace MechanicsUtility {
 				desired /= slowing;
 			}
 			return desired;
+		}
+
+		// How much a car can turn with given parameters, maxPhi is in degrees
+		// returned values is in degrees
+		public static float Omega(float speed, float L, float maxPhi) {
+			return (Mathf.Abs(speed) / L * Mathf.Tan(maxPhi.ToRad())).ToDeg();
 		}
 
 	}//End class

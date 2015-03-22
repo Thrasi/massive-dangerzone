@@ -27,6 +27,24 @@ namespace Geometry {
 		public static float ToDeg(this float angle) {
 			return angle * 180 / Mathf.PI;
 		}
+
+		// Finds closest n points
+		public static IEnumerable<Tuple<Vector3, float>> Closest(
+			this IEnumerable<Vector3> positions, Vector3 point, int n) {
+			
+			// Find closest
+			FFFBHeap<Vector3> heap = new FFFBHeap<Vector3>(n);
+			foreach (Vector3 p in positions) {
+				heap.Insert(Vector3.Distance(p, point), p);
+			}
+
+			// Turn them into tuples
+			List<Tuple<Vector3, float>> closest = new List<Tuple<Vector3, float>>();
+			foreach (KeyValuePair<Vector3, float> kv in heap) {
+				closest.Add(Tuple.Create(kv.Key, kv.Value));
+			}
+			return closest;
+		}
 	}
 
 }

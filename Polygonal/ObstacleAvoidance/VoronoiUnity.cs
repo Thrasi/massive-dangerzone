@@ -22,13 +22,14 @@ public class VoronoiUnity {
 	
 
 	// Creates voronoi and generates all edges and vertices
-	public VoronoiUnity(List<Vector3> points, List<Polygon> obstacles,
+	public VoronoiUnity(List<Polygon> obstacles,
 		float xmin, float xmax, float ymin, float ymax, bool connectAll) {
 		
 		this.obstacles = new List<Polygon>(obstacles);
 		this.vor = new Voronoi(minDistanceBetweenSites);
 		this.edges = new List<Edge>();
 		this.vertices = new List<Vector3>();
+		List<Vector3> points = obstacles.Vertices();
 		
 		// Generate points
 		double[] xs = new double[points.Count];

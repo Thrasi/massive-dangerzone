@@ -43,4 +43,10 @@ public abstract class Vehicle<T> where T : Vehicle<T> {
 	// The most important part, moving the vehicle
 	public abstract void Move(float dt);
 
+
+	// For debugging
+	protected void print(object s) {
+		Debug.Log(s);
+	}
+
 }

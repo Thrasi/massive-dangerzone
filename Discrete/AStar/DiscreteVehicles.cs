@@ -18,6 +18,7 @@ public class DiscreteVehicles : AbstractDiscrete {
 	// Read the map and run astar
 	protected override void LocalStart () {
 		DiscreteMap map = new DiscreteMap("Assets/_Data/ColAvoidMaze/" + filename);
+		map.ReArrange();
 		
 		GenerateObstacles(map.GetObstaclePositions());
 		GenerateVehicles(map.GetStartPositions());

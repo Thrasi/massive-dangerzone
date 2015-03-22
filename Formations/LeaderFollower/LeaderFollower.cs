@@ -16,6 +16,8 @@ public abstract class LeaderFollower<T> : MonoBehaviour where T : Vehicle<T> {
 	protected static readonly Vector3 backRight30 = new Vector3(1.73f, 0, -3).normalized;
 	protected static readonly Vector3 frontLeft30 = new Vector3(-1.73f, 0, 3).normalized;
 	protected static readonly Vector3 frontRight30 = new Vector3(1.73f, 0, 3).normalized;
+	protected static readonly Vector3 frontLeft75 = new Vector3(-3.73f, 0, 1).normalized;
+	protected static readonly Vector3 frontRight75 = new Vector3(3.73f, 0, 1).normalized;
 
 	// Zero direction
 	protected static readonly Quaternion zeroDir = Quaternion.Euler(Vector3.zero);

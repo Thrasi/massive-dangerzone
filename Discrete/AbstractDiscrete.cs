@@ -26,6 +26,7 @@ public abstract class AbstractDiscrete : AbstractVehicles {
 		// Load gameobjects from resources
 		obstacle = Resources.Load("GameObjects/Obstacle") as GameObject;
 		vehicle = Resources.Load("GameObjects/Vehicle") as GameObject;
+		vehicle.transform.localScale = Vector3.one;
 
 		// Initialize label printing
 		labelStyle = new GUIStyle();

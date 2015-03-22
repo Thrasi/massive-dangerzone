@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
+using ObstaclesExt;
 
 public class ObstacleAvoidanceCar : ObstacleAvoidance {
+
+	private VoronoiUnity vor;
 
 	// Use this for initialization
 	void Start () {
@@ -22,6 +25,9 @@ public class ObstacleAvoidanceCar : ObstacleAvoidance {
 			vehicles[i].transform.rotation =
 				Quaternion.LookRotation(goals[i] - vehicles[i].transform.position);
 		}
+
+		// Create voronoi graph
+		vor = new VoronoiUnity(obstacles, 0, 300, 0, 300, true);
 
 		// Startup time
 		started = Time.realtimeSinceStartup;
@@ -55,4 +61,13 @@ public class ObstacleAvoidanceCar : ObstacleAvoidance {
 			
 		}
 */
+
+	void OnDrawGizmos() {
+		if (vor != null) {
+			Gizmos.color = Color.red;
+			foreach (Vector3 v in vor.vertices) {
+				Gizmos.DrawSphere(v, 3);
+			}
+		}
+	}
 }

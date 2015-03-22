@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public abstract class DirectedVehicle<T> : Vehicle<T> where T : DirectedVehicle<T> {
 
 	// Direction of the vehicle
-	public Vector3 direction { get { return gobj.transform.right; } }
+	public virtual Vector3 direction { get { return gobj.transform.forward; } }
 	
 	// End position of vehicle
 	public override Vector3 endPosition {

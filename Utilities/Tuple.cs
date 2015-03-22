@@ -28,7 +28,7 @@ public class Tuple<T1, T2> {
 	}
 }
 
-public class Tuple {
+public static class Tuple {
 
 	public static Tuple<T1, T2> Create<T1, T2>(T1 _1, T2 _2) {
 		return new Tuple<T1, T2>(_1, _2);
