@@ -21,14 +21,14 @@ public class VRPSolver {
 		this.vrp = vrp;
 		populate (populationSize);
 		foreach (List<List<int>> s in population) {
-			printChromosome(s);
+//			printChromosome(s);
 		}
 		Debug.Log ("-------------------------");
 		for (int i=0; i<2000; i++) {
 			steadyState ();
 		}
 		foreach (List<List<int>> s in population) {
-			printChromosome(s);
+//			printChromosome(s);
 		}
 
 
@@ -60,7 +60,7 @@ public class VRPSolver {
 
 		int [] arr = new int[vrp.V+1];
 		int c = vrp.N / vrp.V;
-		Debug.Log("c: "+c+ ", V: "+vrp.V+", nodesCount: "+nodes.Count);
+//		Debug.Log("c: "+c+ ", V: "+vrp.V+", nodesCount: "+nodes.Count);
 		arr [0] = 0;
 		arr [vrp.V] = nodes.Count;
 		string ss= "" + 0 + ", ";
@@ -334,7 +334,7 @@ public class VRPSolver {
 		return population[index];
 	}
 
-	float cost(List<List<int>> solution) {
+	public float cost(List<List<int>> solution) {
 		/* cost as the sum of the distances within the solution.
 		 */
 
