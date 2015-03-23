@@ -65,6 +65,11 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 			for (int i = 0; i < len; i++) {
 				if (step < paths[i].Count) {
 					vehicles[i].transform.position = paths[i][step].pos;
+					foreach (GameObject cust in customers) {
+						if (cust.transform.position.Equals(vehicles[i].transform.position)) {
+							cust.renderer.material.color = Color.red;
+						}
+					}
 				}
 			}
 			step++;

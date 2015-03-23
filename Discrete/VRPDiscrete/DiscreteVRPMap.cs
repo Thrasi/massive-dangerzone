@@ -203,4 +203,27 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 		return new List<Vector3>(customers);
 	}
 
+	// Returns enumerable of successors and costs to state s
+	public IEnumerable<Tuple<State, float>> Successors(State s) {
+		List<Tuple<State, float>> succ = new List<Tuple<State, float>>();
+		foreach (Vector3 move in neighborhood) {
+			Vector3 neighbor = s.pos + move;
+			int z = (int) neighbor.z, x = (int) neighbor.x;
+			if (z < 0 || x < 0 || z >= size._1 || x >= size._2 || !map[z,x]) {
+				continue;
+			}
+
+			// Make the pause cost less, change it if it starts to fuck up
+			float cost = move.Equals(Vector3.zero) ? 0.5f : 1.0f;
+			succ.Add(Tuple.Create(new State(neighbor, s.t + 1), cost));
+		}
+		return succ;
+	}
+
+	// Returns adjacent states, but vectors and costs
+	public IEnumerable<Tuple<Vector3, float>> Successors(Vector3 v) {
+		State s = new State(v, 0);
+		return Successors(s).Select(t => Tuple.Create(t._1.pos, 1.0f));
+	}
+
 }
