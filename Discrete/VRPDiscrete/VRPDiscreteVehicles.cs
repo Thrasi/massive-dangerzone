@@ -10,18 +10,30 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 	protected GameObject customerParent;
 	protected List<GameObject> customers;
 	protected GameObject customer;
+
+	public int depth = 100;
 	
+	private List<State>[] paths;
 
 	// Use this for initialization
 	protected override void LocalStart () {
 
 		customer = Resources.Load("GameObjects/Customer") as GameObject;
 		DiscreteVRPMap map = new DiscreteVRPMap("Assets/_Data/VRPMaze/" + filename);
-
-
+		
 		GenerateObstacles(map.GetObstaclePositions());
 		GenerateVehicles(map.GetStartPositions());
 		GenerateCustomers(map.GetCustomerPositions());
+
+		VRPAStar ast = new VRPAStar(map, depth,
+			delegate(Vector3 a, Vector3 b) {
+				return Mathf.Abs(a.x-b.x) + Mathf.Abs(a.z-b.z);
+			}
+		);
+		paths = ast.paths;
+		cost = ast.cost;
+
+		
 //		int V = 2, N = 4;
 //		System.Random rand = new System.Random ();
 
@@ -39,19 +51,24 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 //										{3f,2f,1f,2f,1f,0f}};
 
 
-
-//		VRP vrp = new VRP (N, V, dists);
 //
-		VRPSolver vrps = new VRPSolver (map.vrp);
-
-		DiscreteMap discreteMap = new DiscreteMap("Assets/_Data/ColAvoidMaze/" + filename);
 
 //		Debug.Log("hallo");
 	}
 	
 	// Update is called once per frame
 	void Update () {
-
+		c++;
+		if (c >= F) {
+			c = 0;
+			int len = paths.Length;
+			for (int i = 0; i < len; i++) {
+				if (step < paths[i].Count) {
+					vehicles[i].transform.position = paths[i][step].pos;
+				}
+			}
+			step++;
+		}
 	}
 
 	// Generate customers
