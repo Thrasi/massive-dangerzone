@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using System.Collections;
+using System.Linq;
 
 public class DiscreteVRPMap : AbstractDiscreteMap {
 
@@ -11,7 +13,9 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 	public Vector3[] customers { get; protected set; }
 	public FloydMarshall g;
 	public VRP vrp;
-
+	public VRPSolver vrps;
+	public List<Vector3>[] goals;
+	
 
 	/* 	Reads the file for discrete map, the file should have this format:
 		first line -> N -> number of vehicles
@@ -147,6 +151,51 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 		}
 		
 		vrp = new VRP(C,N,d);
+
+		vrps = new VRPSolver (vrp);
+		List<List<int>> solution = vrps.getBest ();
+		vrps.printChromosome (solution);
+		SortedList<float,List<int>> l = new SortedList<float,List<int>> ();
+		goals = new List<Vector3>[N];
+		Vector3[] starts2 = new Vector3[N];
+
+		for (int n=0;n<N;n++) {
+			List<List<int>> c = new List<List<int>>();
+			vrps.printRoute(solution[n]);
+			c.Add(solution[n]);
+			float k = vrps.cost(c);
+//			Debug.Log("vehicle: "+n+ ", cost: "+k);
+			l.Add(vrps.cost(c), solution[n]);
+		}
+
+
+
+		for (int n=0; n<N; n++) {
+			int vehicle = solution.IndexOf(l.Values[N-n-1]);
+//			Debug.Log("vehicle: "+vehicle);
+			List<int> route = solution[vehicle];
+			List<Vector3> coordinates = new List<Vector3>();
+			foreach (int i in route) {
+				coordinates.Add(customers[i]);
+			}
+			starts2[n] = base.starts[vehicle];
+			goals[n] = coordinates;
+		}
+		starts = starts2;
+//		Debug.Log (starts);
+//		Debug.Log (goals);
+//		string s= "";
+//		foreach (List<Vector3> kok in goals){
+//			foreach (Vector3 va in kok) {
+//				s+= va+", ";
+//			}
+//			s+="\n";
+//		}
+//		Debug.Log (s);
+//		foreach (Vector3 va in starts) {
+//			Debug.Log (va);
+//		}
+
 	}
 
 	// Returns a list of customers positions

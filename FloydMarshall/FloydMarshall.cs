@@ -22,6 +22,10 @@ public class FloydMarshall {
 			V = counter;
 		}
 	}
+
+	public VertexG getVertex(int index) {
+		return adjacencyList[index];
+	}
 	
 	public void AddEdge(VertexG v, VertexG u, float w) {
 		if ( !adjacencyList.Contains(v) ) {
@@ -46,7 +50,7 @@ public class FloydMarshall {
 	public float distance(VertexG v, VertexG u) {
 		int i = adjacencyList.IndexOf (v);
 		int j = adjacencyList.IndexOf (u);
-		Debug.Log (string.Format("v: {3}, u: {4}, i: {0}, j: {1}, V: {2}, distance: {5}", i, j, V, v, u,dist[i,j]));
+//		Debug.Log (string.Format("v: {3}, u: {4}, i: {0}, j: {1}, V: {2}, distance: {5}", i, j, V, v, u,dist[i,j]));
 		return dist[i,j];
 	}
 
