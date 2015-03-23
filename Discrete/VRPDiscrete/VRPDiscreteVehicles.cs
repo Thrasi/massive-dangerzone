@@ -32,28 +32,6 @@ public class VRPDiscreteVehicles : AbstractDiscrete {
 		);
 		paths = ast.paths;
 		cost = ast.cost;
-
-		
-//		int V = 2, N = 4;
-//		System.Random rand = new System.Random ();
-
-//		float [,] dists = new float[N+V,N+V];
-//		for (int i=0; i<N+V; i++) {
-//			for (int j=0;j<N+V;j++){
-//				dists[i,j] = 1;//VRPSolver.NextFloat(rand);
-//			}		
-//		}
-//		float [,] dists = new float[,] {{0f,1f,4f,5f,2f,3f},
-//										{1f,0f,3f,4f,1f,2f},
-//										{4f,3f,0f,1f,2f,1f},
-//										{5f,4f,1f,0f,3f,2f},
-//										{2f,1f,2f,3f,0f,1f},
-//										{3f,2f,1f,2f,1f,0f}};
-
-
-//
-
-//		Debug.Log("hallo");
 	}
 	
 	// Update is called once per frame

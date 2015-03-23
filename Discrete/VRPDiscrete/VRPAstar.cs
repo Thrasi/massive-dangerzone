@@ -54,26 +54,20 @@ public class VRPAStar {
 				Astar(fNode, goals[i][0], false) : Astar(fNode, goals[i][0], true);
 			this.paths[i] = new List<State>(Trace(goalNode.prev));
 
-			//Debug.Log(i + " " + goalNode + " " + goalNode.prev);
-
 			// Other runs of astar
 			for (int j = 1; j < goals[i].Count-1; j++) {
 				goalNode.prev = null;
 				goalNode = Astar(goalNode, goals[i][j], false);
 				Debug.Log(goalNode);
 				this.paths[i].AddRange(Trace(goalNode.prev));
-				//Debug.Log(i + " " + goalNode + " " + goalNode.prev);
 			}
 
 			// Last run
 			if (goals[i].Count > 1) {
-				//Debug.Log(i + " " + goalNode.state + " " + goalNode.prev.state);
 				goalNode.prev = null;
 				goalNode = Astar(goalNode, goals[i][goals[i].Count-1], true);
-				//Debug.Log(i + " " + goalNode + " " + goalNode.prev);
 				this.paths[i].AddRange(Trace(goalNode));
 			}
-			//this.paths[i].Add(goalNode.state);
 			
 			// Check all pauses
 			pauses[i] = new List<int>();
