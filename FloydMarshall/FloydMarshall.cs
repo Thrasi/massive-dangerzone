@@ -90,6 +90,24 @@ public class FloydMarshall {
 			}
 		}
 		Debug.Log ("iffed: " + iffed);
+
+
+	}
+
+	public List<Vector3> Path(int u, int v) {
+		List<int> path = new List<int>();
+		List<Vector3> p = new List<Vector3> ();
+		if (next[u,v] == -1 ) {
+			return p;
+		}
+		path.Add (u);
+		p.Add (adjacencyList [u].pos);
+		while (u != v) {
+			u = next[u,v];
+			path.Add (u);
+			p.Add (adjacencyList [u].pos);
+		}
+		return p;
 	}
 }
 

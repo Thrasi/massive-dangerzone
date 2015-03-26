@@ -155,26 +155,50 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 		vrps = new VRPSolver (vrp);
 		List<List<int>> solution = vrps.getBest ();
 		vrps.printChromosome (solution);
-		SortedList<float,List<int>> l = new SortedList<float,List<int>> ();
+
 		goals = new List<Vector3>[N];
 		Vector3[] starts2 = new Vector3[N];
+		List<Route> routes = new List<Route>();
 
 		for (int n=0;n<N;n++) {
 			List<List<int>> c = new List<List<int>>();
-			vrps.printRoute(solution[n]);
+//			vrps.printRoute(solution[n]);
 			c.Add(solution[n]);
-			float k = vrps.cost(c);
+			Route r = new Route(solution[n], vrps.cost(c) );
+//			float k = vrps.cost(c);
+//			
 //			Debug.Log("vehicle: "+n+ ", cost: "+k);
-			l.Add(vrps.cost(c), solution[n]);
+			int ins = routes.BinarySearch(r, new routeComparer());
+			if (ins < 0) {
+				ins = ~ins;
+			}
+			routes.Insert(ins, r);
+			
 		}
 
+//		string s= "";
+//		foreach (Route kok in routes){
+//			foreach (int va in kok.route) {
+//				s+= va+", ";
+//			}
+//			s+="\n";
+//		}
+//		Debug.Log (s);
+//		s= "";
+//		foreach (List<int> kok in l.Values){
+//			foreach (int va in kok) {
+//				s+= va+", ";
+//			}
+//			s+="\n";
+//		}
+//		Debug.Log (s);
 
 
 		for (int n=0; n<N; n++) {
-			int vehicle = solution.IndexOf(l.Values[N-n-1]);
-//			Debug.Log("vehicle: "+vehicle);
+			int vehicle = solution.IndexOf(routes[N-n-1].route);
 			List<int> route = solution[vehicle];
 			List<Vector3> coordinates = new List<Vector3>();
+
 			foreach (int i in route) {
 				coordinates.Add(customers[i]);
 			}
@@ -182,9 +206,7 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 			goals[n] = coordinates;
 		}
 		starts = starts2;
-//		Debug.Log (starts);
-//		Debug.Log (goals);
-//		string s= "";
+//		s= "";
 //		foreach (List<Vector3> kok in goals){
 //			foreach (Vector3 va in kok) {
 //				s+= va+", ";
@@ -192,11 +214,13 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 //			s+="\n";
 //		}
 //		Debug.Log (s);
+//
 //		foreach (Vector3 va in starts) {
 //			Debug.Log (va);
 //		}
 
 	}
+
 
 	// Returns a list of customers positions
 	public List<Vector3> GetCustomerPositions() {
@@ -226,4 +250,25 @@ public class DiscreteVRPMap : AbstractDiscreteMap {
 		return Successors(s).Select(t => Tuple.Create(t._1.pos, 1.0f));
 	}
 
+}
+
+class Route {
+	public List<int> route { private set; get;}
+	public float dist { private set; get;}
+	public Route(List<int> route, float dist) {
+		this.route = route;
+		this.dist = dist;
+	}
+	
+//	public override int Compare(Route r1, Route r2) {
+//		return (int)Mathf.Sign (r1.dist - r2.dist);
+//	}
+}
+
+class routeComparer : IComparer<Route> {
+	
+	// Compares cost as both g and h
+	public int Compare(Route o1, Route o2) {
+		return (int)Mathf.Sign (o1.dist - o2.dist);
+	}
 }
