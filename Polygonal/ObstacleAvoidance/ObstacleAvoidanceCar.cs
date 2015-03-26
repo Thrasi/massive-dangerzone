@@ -57,7 +57,7 @@ public class ObstacleAvoidanceCar : ObstacleAvoidance {
 			Vector3 direction = vehicles[i].transform.forward;
 
 
-			Tuple<Edge, float> inters = obstacles.ClosestIntersection(position, goals[i]);
+			Tuple<Edge, float> inters = obstacles.ClosestIntersection(position + R/2 * direction, goals[i]);
 			if (inters._1 != null && inters._2 < r) {
 				Vector3 v1 = inters._1.v - inters._1.w;
 				Vector3 v2 = inters._1.w - inters._1.v;

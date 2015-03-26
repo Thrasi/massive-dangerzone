@@ -12,6 +12,18 @@ using MechanicsUtility;
 **/
 public class ObstacleAvoidancePoint : ObstacleAvoidance {
 
+	// How far should I check for vehicles
+	public float distanceNeighborhood = 40.0f;
+
+	// Number of vehicles to take into account
+	public int neighborhoodSize = 12;
+
+	// Time horizon for checing collision, how far in time to see if the collide
+	public float timeHorizon = 10.0f;
+
+	// Same as time horizon but used for obstacles
+	public float timeHorizonObst = 5.0f;
+
 	// Should I turn left
 	public bool turnLeft = true;
 
@@ -20,6 +32,12 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 
 	// Probability to generate random acceleration
 	public float randomAccProb = 0.0f;
+
+	// Scaled distance to wall when initiate going around
+	public float wallDistanceMultiplier = 3;
+
+	// Speed to wall multiplier
+	public float speedWallMultiplier = 0.9f;
 
 
 	// Their velocities (not used at the moment)
@@ -123,7 +141,7 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 			Vector3 prefVel;
 			if ((intersA._1 == null && intersB._1 == null)	// No intersections on path
 				|| wall._1 == null							// No obstacles
-				|| wall._2 > 3.5f*R 							// Obstacle too far
+				|| wall._2 > wallDistanceMultiplier * R		// Obstacle too far
 				|| (intersA._2 > 4*R && intersB._2 > 4*R 	// Intersection too far
 					&& !samePol)	// closest wall and intersection not in same polygon
 				) {	
@@ -140,10 +158,11 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 				float wangle = Vector3.Angle(leftDirection, wdir);
 				// NOTE change this if velocity near the wall is too big
 				if (vangle < wangle) {
-					prefVel = leftDirection * Vector3.Distance(wall._1.v, currPos) * 0.9f;
+					prefVel = leftDirection * Vector3.Distance(wall._1.v, currPos);
 				} else {
-					prefVel = leftDirection * Vector3.Distance(wall._1.w, currPos) * 0.9f;
+					prefVel = leftDirection * Vector3.Distance(wall._1.w, currPos);
 				}
+				prefVel *= speedWallMultiplier;
 			}
 			
 			// Set preferred

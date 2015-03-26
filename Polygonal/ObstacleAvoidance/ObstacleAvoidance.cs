@@ -19,18 +19,6 @@ public abstract class ObstacleAvoidance : AbstractPolygonalVehicles {
 	// Maximum acceleration
 	public float maxAcc = 1.0f;
 
-	// How far should I check for vehicles
-	public float distanceNeighborhood = 40.0f;
-
-	// Number of vehicles to take into account
-	public int neighborhoodSize = 12;
-
-	// Time horizon for checing collision, how far in time to see if the collide
-	public float timeHorizon = 10.0f;
-
-	// Same as time horizon but used for obstacles
-	public float timeHorizonObst = 5.0f;
-
 	// To show visible vertices from each vehicle
 	public bool showVisible = false;
 
