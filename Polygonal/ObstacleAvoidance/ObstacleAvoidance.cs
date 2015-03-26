@@ -1,7 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ObstacleAvoidance : AbstractPolygonalVehicles {
+public abstract class ObstacleAvoidance : AbstractPolygonalVehicles {
+
+	// Distance condition to end
+	private const float END_DIST = 0.1f;
+
+	// Velocity condition to end
+	private const float END_VEL = 0.5f;
 
 
 	// Filename for map
@@ -45,7 +51,6 @@ public class ObstacleAvoidance : AbstractPolygonalVehicles {
 	// For label
 	private GUIStyle labelStyle;
 	private Rect labelRect;
-	protected string strCost;
 	protected float cost;
 	protected float started;
 
@@ -66,5 +71,20 @@ public class ObstacleAvoidance : AbstractPolygonalVehicles {
 			labelStyle
 		);
 	}
+
+	// Checks if all vehicles have reached the goal. Vehicles has reached the goal if
+	// it's closer than END_DIST and its speed is less than END_VEL
+	protected bool AllReached() {
+		for (int i = 0; i < N; i++) {
+			Vector3 pos = vehicles[i].transform.position;
+			if (!(Vector3.Distance(pos, goals[i]) < END_DIST) || !(Speed(i) < END_VEL)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// Returns speed of ith vehicle
+	protected abstract float Speed(int i);
 
 }

@@ -9,7 +9,7 @@ public abstract class AbstractDiscrete : AbstractVehicles {
 	private GameObject obstacle;
 
 	// Variables for moving vehicles
-	protected const int F = 20;			// Every 20 frames
+	protected const int F = 30;			// Every 20 frames
 	protected int c = 0;				// Counter
 	protected int step = 0;				// Step in the time
 

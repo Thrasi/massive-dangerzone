@@ -79,6 +79,11 @@ namespace MechanicsUtility {
 			return (Mathf.Abs(speed) / L * Mathf.Tan(maxPhi.ToRad())).ToDeg();
 		}
 
+		// Radius of the circle which car makes
+		public static float Radius(float L, float phi) {
+			return L / Mathf.Tan(phi.ToRad());
+		}
+
 	}//End class
 
 }//End namespace

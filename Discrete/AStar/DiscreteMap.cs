@@ -72,6 +72,7 @@ public class DiscreteMap : AbstractDiscreteMap {
 		for (int i = 0; i < N; i++) {
 			AStar ast = new AStar(this, starts[i], goals[i], h);
 			costs[i] = ast.cost;
+			Debug.Log(ast.cost);
 		}
 
 		// Copy array, sorting is needed twice
@@ -100,6 +101,7 @@ public class DiscreteMap : AbstractDiscreteMap {
 
 			// Make the pause cost less, change it if it starts to fuck up
 			float cost = move.Equals(Vector3.zero) ? 0.5f : 1.0f;
+			cost = 1.0f;
 			succ.Add(Tuple.Create(new State(neighbor, s.t + 1), cost));
 		}
 		return succ;

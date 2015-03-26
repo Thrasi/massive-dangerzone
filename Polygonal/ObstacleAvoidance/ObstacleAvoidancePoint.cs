@@ -18,6 +18,9 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 	// To show preferred velocities
 	public bool showPrefs = false;
 
+	// Probability to generate random acceleration
+	public float randomAccProb = 0.0f;
+
 
 	// Their velocities (not used at the moment)
 	private Vector3[] velocities;
@@ -30,14 +33,6 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 
 	// Simulator
 	private DynamicRVO sim;
-
-
-	// Distance condition to end
-	private const float END_DIST = 0.1f;
-
-	// Velocity condition to end
-	private const float END_VEL = 0.5f;
-
 
 
 	// Use this for initialization
@@ -76,7 +71,9 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 			sim.addObstacle(pol);
 		}
 		sim.processObstacles();
-		
+		sim.setGenerate(true);
+		sim.setAccelerationProbability(randomAccProb);
+
 		// Set startup time
 		started = Time.realtimeSinceStartup;
 	}
@@ -126,7 +123,7 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 			Vector3 prefVel;
 			if ((intersA._1 == null && intersB._1 == null)	// No intersections on path
 				|| wall._1 == null							// No obstacles
-				|| wall._2 > 3*R 							// Obstacle too far
+				|| wall._2 > 3.5f*R 							// Obstacle too far
 				|| (intersA._2 > 4*R && intersB._2 > 4*R 	// Intersection too far
 					&& !samePol)	// closest wall and intersection not in same polygon
 				) {	
@@ -143,9 +140,9 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 				float wangle = Vector3.Angle(leftDirection, wdir);
 				// NOTE change this if velocity near the wall is too big
 				if (vangle < wangle) {
-					prefVel = leftDirection * Vector3.Distance(wall._1.v, currPos) * 0.7f;
+					prefVel = leftDirection * Vector3.Distance(wall._1.v, currPos) * 0.9f;
 				} else {
-					prefVel = leftDirection * Vector3.Distance(wall._1.w, currPos) * 0.7f;
+					prefVel = leftDirection * Vector3.Distance(wall._1.w, currPos) * 0.9f;
 				}
 			}
 			
@@ -170,18 +167,9 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 		}
 	}
 
-	// Checks if all vehicles have reached the goal. Vehicles has reached the goal if
-	// it's closer than END_DIST and its speed is less than END_VEL
-	private bool AllReached() {
-		for (int i = 0; i < N; i++) {
-			Vector3 v3pos = vehicles[i].transform.position;
-			if (!(Vector3.Distance(v3pos, goals[i]) < END_DIST)
-				|| !(velocities[i].magnitude < END_VEL)) {
-				
-				return false;
-			}
-		}
-		return true;
+	// Returns speed of the car
+	protected override float Speed(int i) {
+		return velocities[i].magnitude;
 	}
 
 	// Connects given vertex to all vertices in given list
