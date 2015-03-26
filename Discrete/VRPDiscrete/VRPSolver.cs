@@ -14,8 +14,13 @@ public class VRPSolver {
 	float [] cumulativeCost;
 	float [] cumulativeInverseCost;
 	// Parameters:
-	int populationSize = 100;
-	public int pSame = 50;
+	int populationSize = 200;
+	public int pSame = 70;
+	int iter = 2000;
+
+//	int populationSize = 200;
+//	public int pSame = 90;
+//	int iter = 8000;
 
 	public VRPSolver(VRP vrp) {
 		this.vrp = vrp;
@@ -24,7 +29,7 @@ public class VRPSolver {
 //			printChromosome(s);
 		}
 		Debug.Log ("-------------------------");
-		for (int i=0; i<2000; i++) {
+		for (int i=0; i<iter; i++) {
 			steadyState ();
 		}
 		foreach (List<List<int>> s in population) {
