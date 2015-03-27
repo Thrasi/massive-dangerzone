@@ -24,6 +24,12 @@ public class ObstacleAvoidancePoint : ObstacleAvoidance {
 	// Same as time horizon but used for obstacles
 	public float timeHorizonObst = 5.0f;
 
+	// To show visible vertices from each vehicle
+	public bool showVisible = false;
+
+	// To show line from vehicle to goal
+	public bool showToGoal = false;
+
 	// Should I turn left
 	public bool turnLeft = true;
 

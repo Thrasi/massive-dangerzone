@@ -25,16 +25,16 @@ public class VRPSolver {
 	public VRPSolver(VRP vrp) {
 		this.vrp = vrp;
 		populate (populationSize);
-		foreach (List<List<int>> s in population) {
+//		foreach (List<List<int>> s in population) {
 //			printChromosome(s);
-		}
-		Debug.Log ("-------------------------");
+//		}
+//		Debug.Log ("-------------------------");
 		for (int i=0; i<iter; i++) {
 			steadyState ();
 		}
-		foreach (List<List<int>> s in population) {
+//		foreach (List<List<int>> s in population) {
 //			printChromosome(s);
-		}
+//		}
 
 
 	}
@@ -190,9 +190,9 @@ public class VRPSolver {
 		for (int k=0;k<O.Count;k++) {
 			O[k] = O[k].Except(subRoute).ToList();
 		}
-		foreach (List<int> r in O) {
+//		foreach (List<int> r in O) {
 			 // does this work?
-		}
+//		}
 
 		//Debug.Log("enter BI");
 		int [] bestIndex = BestInsertion (O, subRoute);

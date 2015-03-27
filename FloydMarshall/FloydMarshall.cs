@@ -69,7 +69,7 @@ public class FloydMarshall {
 		foreach (VertexG l in adjacencyList) {
 			int u = l.number;
 //			Debug.Log("Vertex: "+l+", number: "+u+", length of neighbours: "+l.neighbours.Count);
-			IDictionary<VertexG, float> neighs = l.neighbours;
+//			IDictionary<VertexG, float> neighs = l.neighbours;
 
 			foreach (KeyValuePair<VertexG, float> edge in l.neighbours) {
 				int v = edge.Key.number;

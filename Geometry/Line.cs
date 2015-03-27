@@ -24,6 +24,7 @@ public class Line {
 		}
 	}
 
+	// Construct line from an edge
 	public Line(Edge e) : this(e.v, e.w) {
 	}
 

@@ -19,12 +19,6 @@ public abstract class ObstacleAvoidance : AbstractPolygonalVehicles {
 	// Maximum acceleration
 	public float maxAcc = 1.0f;
 
-	// To show visible vertices from each vehicle
-	public bool showVisible = false;
-
-	// To show line from vehicle to goal
-	public bool showToGoal = false;
-
 
 	// Number of vehicles
 	protected int N;
